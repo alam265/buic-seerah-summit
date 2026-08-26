@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>অ্যাডমিন লগইন - BUIC Admin Portal</title>
+  <meta name="description" content="BUIC সীরাত প্রতিযোগিতা ২০২৬ এডমিন পোর্টাল লগইন।">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- Decorative Background -->
+  <div class="bg-glow-container">
+    <div class="bg-glow-orb bg-glow-orb-1"></div>
+    <div class="bg-glow-orb bg-glow-orb-2"></div>
+  </div>
+
+  <!-- Header Placeholder -->
+  <div id="header-placeholder"></div>
+
+  <!-- Main Content -->
+  <main class="main-content"
+    style="min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: var(--header-height) 0 60px; box-sizing: border-box;">
+    <div class="container" style="max-width: 480px; width: 100%;">
+
+      <div class="form-wrapper" style="box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid var(--accent-gold);">
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="font-size: 3rem; margin-bottom: 10px;">🔐</div>
+          <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-heading); margin-bottom: 8px;">
+            অ্যাডমিন লগইন
+          </h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            নিবন্ধিত ডাটা দেখার জন্য যথাযথ অ্যাডমিন ক্রেডেনশিয়াল প্রদান করুন
+          </p>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="login-alert"
+          style="display: none; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">
+        </div>
+
+        <form id="admin-login-form">
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+
+            <div class="form-group">
+              <label class="form-label" for="username">
+                ইউজারনেম (Username) <span class="required">*</span>
+              </label>
+              <input type="text" id="username" class="form-input" placeholder="আপনার অ্যাডমিন ইউজারনেম" required
+                autofocus autocomplete="username">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="password">
+                পাসওয়ার্ড (Password) <span class="required">*</span>
+              </label>
+              <div style="position:relative;">
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required
+                  autocomplete="current-password" style="padding-right: 46px;">
+                <button type="button" id="toggle-password"
+                  style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; padding:4px; border-radius:4px; transition:color 0.2s;"
+                  title="পাসওয়ার্ড দেখুন / লুকান"
+                  onmouseenter="this.style.color='var(--accent-emerald)'"
+                  onmouseleave="this.style.color='var(--text-muted)'">
+                  <!-- Eye icon (visible when password is hidden) -->
+                  <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <!-- Eye-off icon (visible when password is shown) -->
+                  <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="display:none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" id="login-btn" class="btn btn-gold"
+              style="width: 100%; margin-top: 10px; font-size: 1.05rem; padding: 14px;">
+              🔑 অ্যাডমিন সিস্টেমে প্রবেশ করুন
+            </button>
+
+          </div>
+        </form>
+
+        <div
+          style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.82rem; color: var(--text-muted);">
+          ℹ️ সাধারণ ব্যবহারকারীগণ শুধুমাত্র <a href="/register"
+            style="color: var(--accent-emerald); text-decoration: underline;">নিবন্ধন করুন</a> পেজ ব্যবহার করতে পারবেন।
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/login.js"></script>
+  <script>
+    document.getElementById('toggle-password').addEventListener('click', function () {
+      const input = document.getElementById('password');
+      const eyeIcon = document.getElementById('eye-icon');
+      const eyeOffIcon = document.getElementById('eye-off-icon');
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      eyeIcon.style.display = isHidden ? 'none' : 'block';
+      eyeOffIcon.style.display = isHidden ? 'block' : 'none';
+    });
+  </script>
+</body>
+
+</html>

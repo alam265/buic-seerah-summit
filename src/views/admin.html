@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>অংশগ্রহণকারী তালিকা - BUIC Admin</title>
+  <meta name="description" content="BUIC সীরাত প্রতিযোগিতা ২০২৬ ডাটাবেজ অ্যাডমিন ভিউ ও পার্টিসিপেন্ট লিস্ট।">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- Decorative Background -->
+  <div class="bg-glow-container">
+    <div class="bg-glow-orb bg-glow-orb-1"></div>
+    <div class="bg-glow-orb bg-glow-orb-2"></div>
+  </div>
+
+  <!-- Header Placeholder -->
+  <div id="header-placeholder"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Header -->
+      <div class="section-header" style="margin-bottom:30px;">
+        <!-- <div class="badge-tag">📊 Neon PostgreSQL Records</div> -->
+        <h1 class="section-title">নিবন্ধিত অংশগ্রহণকারীদের ডাটাবেজ</h1>
+        <!-- <p class="hero-subtitle">
+          Neon ডাটাবেজে সংরক্ষিত সমস্ত নিবন্ধনের রিয়েল-টাইম তালিকা, তথ্য অনুসন্ধান ও ফাইল ডাউনলোড সুবিধা।
+        </p> -->
+      </div>
+
+      <!-- Stats Bar & Actions -->
+      <div class="admin-bar"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+        <div style="display:flex; gap:16px; align-items:center;">
+          <div class="card" style="padding:12px 20px;">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Registered:</span>
+            <span id="total-count"
+              style="font-size:1.3rem; font-weight:800; color:var(--accent-emerald); margin-left:8px;">0 জন</span>
+          </div>
+        </div>
+
+        <div class="admin-action-bar" style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button id="export-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
+            📥 CSV এক্সপোর্ট (Download)
+          </button>
+          <button id="notify-email-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;">
+            📧 সবাইকে ইমেইল পাঠান
+          </button>
+          <button onclick="fetchParticipants()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
+            🔄 রিফ্রেশ ডাটা
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div style="margin-bottom: 24px;">
+        <input type="text" id="search-input" class="form-input"
+          placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন..."
+          style="padding: 14px 20px; font-size: 1rem;">
+      </div>
+
+      <!-- Participants Data Table -->
+      <div class="table-container" style="margin-bottom: 50px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>টিকিট আইডি</th>
+              <th>নাম</th>
+              <th>স্টুডেন্ট আইডি</th>
+              <th>সেমিস্টার</th>
+              <th>ডিপার্টমেন্ট</th>
+              <th>হোয়াটসঅ্যাপ</th>
+              <th>লিঙ্গ</th>
+              <th>জিসুইট ইমেইল</th>
+              <th>পার্সোনাল ইমেইল</th>
+              <th>বিকাশ টিএক্সএন</th>
+              <th>Invitation Source</th>
+              <th>Uswatun Read</th>
+              <th>তারিখ</th>
+              <th style="text-align:center;">অ্যাকশন (Manage)</th>
+            </tr>
+          </thead>
+          <tbody id="participants-tbody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য আনা হচ্ছে...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Edit / Add Participant Modal -->
+      <div id="edit-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center; padding:20px;">
+        <div class="card"
+          style="max-width:620px; width:100%; max-height:90vh; overflow-y:auto; background:var(--bg-card); border:1px solid var(--accent-gold); border-radius:12px; padding:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 id="modal-title" style="color:var(--accent-gold); margin:0;">✏️ তথ্য সম্পাদন করুন</h3>
+            <button onclick="closeEditModal()"
+              style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+          </div>
+           <form id="edit-form" style="display:flex; flex-direction:column; gap:12px;">
+            <input type="hidden" id="edit-id">
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">পূর্ণ নাম *</label>
+              <input type="text" id="edit-name" class="form-input" required>
+            </div>
+            <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">স্টুডেন্ট আইডি *</label>
+                <input type="text" id="edit-studentId" class="form-input" required>
+              </div>
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">সেমিস্টার / ইনটেক *</label>
+                <input type="text" id="edit-semester" class="form-input" placeholder="Fall 22" required>
+              </div>
+            </div>
+            <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">ডিপার্টমেন্ট *</label>
+                <input type="text" id="edit-department" class="form-input" placeholder="CSE/EEE/BBA/LLB/etc" required>
+              </div>
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">হোয়াটসঅ্যাপ *</label>
+                <input type="tel" id="edit-whatsapp" class="form-input" required>
+              </div>
+            </div>
+            <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">লিঙ্গ *</label>
+                <select id="edit-gender" class="form-input" required>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">ফেসবুক লিংক</label>
+                <input type="url" id="edit-facebookLink" class="form-input" placeholder="https://facebook.com/...">
+              </div>
+            </div>
+            <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">জিসুইট ইমেইল *</label>
+                <input type="email" id="edit-gsuitEmail" class="form-input" required>
+              </div>
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">পার্সোনাল ইমেইল *</label>
+                <input type="email" id="edit-personalEmail" class="form-input" required>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">বিকাশ ট্রানজ্যাকশন আইডি *</label>
+              <input type="text" id="edit-bkashTxnId" class="form-input" required>
+            </div>
+
+            <div style="margin-top:8px; padding-top:12px; border-top:1px solid var(--border-color);">
+              <p style="font-size:0.9rem; color:var(--accent-gold); margin:0 0 10px; font-weight:600;">Survey Responses</p>
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">Seerah read before</label>
+              <input type="text" id="edit-seerahReadBefore" class="form-input">
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">Engagement suggestions</label>
+              <textarea id="edit-engagementSuggestions" class="form-textarea" rows="2"></textarea>
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">Programme expectation</label>
+              <textarea id="edit-programmeExpectation" class="form-textarea" rows="2"></textarea>
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">Invitation source</label>
+              <select id="edit-invitationSource" class="form-input">
+                <option value="">— Select —</option>
+                <option value="Deeni Halaqa BRACUians (Messenger GC)">Deeni Halaqa BRACUians (Messenger GC)</option>
+                <option value="Student community/Faculty Review group">Student community/Faculty Review group</option>
+                <option value="Through Friends">Through Friends</option>
+                <option value="BRACUian Islamic Community page">BRACUian Islamic Community page</option>
+                <option value="Deeni Halaqa BRACUians Sisters (Messenger GC)">Deeni Halaqa BRACUians Sisters (Messenger GC)</option>
+              </select>
+            </div>
+            <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">Uswatun Hasanah read</label>
+                <select id="edit-uswatunHasanahRead" class="form-input">
+                  <option value="">— Select —</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.85rem; color:var(--text-muted);">Uswatun participation</label>
+                <select id="edit-uswatunHasanahParticipation" class="form-input">
+                  <option value="">— Select —</option>
+                  <option value="Yes, I want to purchase Uswatun Hasanah, and participate">Purchase & participate</option>
+                  <option value="I have this already and want to participate without purchasing it">Already have — participate</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+              <button type="button" onclick="closeEditModal()" class="btn btn-secondary"
+                style="padding:8px 16px;">বাতিল</button>
+              <button type="submit" class="btn btn-gold" style="padding:8px 20px;">💾 সেভ করুন</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bulk Email Notification Modal -->
+      <div id="notify-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; justify-content:center; align-items:center; padding:20px;">
+        <div class="card"
+          style="max-width:620px; width:100%; max-height:90vh; overflow-y:auto; background:var(--bg-card); border:1px solid var(--accent-emerald); border-radius:12px; padding:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="color:var(--accent-emerald); margin:0;">📧 সব অংশগ্রহণকারীকে ইমেইল পাঠান</h3>
+            <button onclick="closeNotifyModal()"
+              style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+          </div>
+          <form id="notify-form" style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">বিষয় (Subject) *</label>
+              <input type="text" id="notify-subject" class="form-input" required
+                placeholder="BUIC Seerah Competition — Important Update">
+            </div>
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">বার্তা (Message) *</label>
+              <textarea id="notify-message" class="form-input" rows="8" required
+                ></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+              <button type="button" onclick="closeNotifyModal()" class="btn btn-secondary"
+                style="padding:8px 16px;">বাতিল</button>
+              <button type="submit" id="notify-submit-btn" class="btn btn-gold" style="padding:8px 20px;">📤 ইমেইল পাঠান</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Neon Setup SQL Helper Card -->
+      <!-- <div class="card" style="border-color: rgba(168, 85, 247, 0.4);">
+        <h3 class="card-title" style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:12px;">
+          🛠️ Neon Database SQL Queries (Direct Manual Management)
+        </h3>
+        <p class="card-desc" style="margin-bottom:12px;">
+          Neon SQL Editor এ সরাসরি ম্যানুয়ালি View, Insert, Edit ও Delete করার জন্য প্রয়োজনীয় SQL ক্যোয়ারীসমূহ:
+        </p>
+        <pre
+          style="background:rgba(0,0,0,0.4); color:#c084fc; padding:16px; border-radius:8px; overflow-x:auto; font-size:0.85rem; border:1px solid var(--border-color);">
+-- 1. View all participant registrations
+SELECT * FROM registrations ORDER BY id DESC;
+
+-- 2. Add (Insert) a new participant row manually
+INSERT INTO registrations (ticket_id, full_name, email, phone, department, roll_no)
+VALUES ('BUIC-2026-99999', 'রহিম আহমেদ', 'rahim@example.com', '01711000000', 'CSE', '26301099');
+
+-- 3. Edit (Update) a participant row manually
+UPDATE registrations 
+SET full_name = 'নতুন নাম', department = 'EEE' 
+WHERE ticket_id = 'BUIC-2026-99999';
+
+-- 4. Delete a participant row manually
+DELETE FROM registrations WHERE id = 1;
+
+-- 5. Set or Update Admin Login Credentials Manually in Neon SQL Editor:
+-- View current Web App Admin credentials
+SELECT * FROM admins;
+
+-- Set a new Admin username & password manually
+INSERT INTO admins (username, password) VALUES ('superadmin', 'admin12345');
+
+-- Change existing Admin password manually
+UPDATE admins SET password = 'new_secure_password' WHERE username = 'admin';</pre>
+      </div> -->
+
+    </div>
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+
+</html>

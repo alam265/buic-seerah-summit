@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>অনলাইন নিবন্ধন - BUIC Seerah Competition</title>
+  <meta name="description" content="সীরাত প্রতিযোগিতা ২০২৬ এর অনলাইন রেজিস্ট্রেশান পোর্টাল।">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- Decorative Background -->
+  <div class="bg-glow-container">
+    <div class="bg-glow-orb bg-glow-orb-1"></div>
+    <div class="bg-glow-orb bg-glow-orb-2"></div>
+  </div>
+
+  <!-- Header Placeholder -->
+  <div id="header-placeholder"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Section Header -->
+      <div class="section-header">
+        <div class="badge-tag">🎟️ অনলাইন পোর্টাল</div>
+        <h1 class="section-title">সীরাত প্রতিযোগিতা ২০২৬ রেজিস্ট্রেশান</h1>
+        <p class="hero-subtitle">
+          ফরমটি সঠিকভাবে পূরণ করে আপনার আসন নিশ্চিত করুন।
+        </p>
+      </div>
+
+      <!-- Form Wrapper -->
+      <div class="form-wrapper">
+
+        <!-- DB Live Status Banner -->
+        <!-- <div id="db-status-banner" class="db-status-banner connected">
+          <span><span class="db-status-dot"></span> Neon DB সংযোগ স্ট্যাটাস লোড হচ্ছে...</span>
+        </div> -->
+
+        <form id="registration-form">
+          <div class="form-grid">
+
+            <!-- Full Name -->
+            <div class="form-group full-width">
+              <label class="form-label" for="fullName">
+                পূর্ণ নাম (NAME) <span class="required">*</span>
+              </label>
+              <input type="text" id="fullName" class="form-input" placeholder="Abdullah" required>
+            </div>
+
+            <!-- Student ID -->
+            <div class="form-group">
+              <label class="form-label" for="studentId">
+                স্টুডেন্ট আইডি (STUDENT ID) <span class="required">*</span>
+              </label>
+              <input type="text" id="studentId" class="form-input" placeholder="26301077" required>
+            </div>
+
+            <!-- Semester / Intake -->
+            <div class="form-group">
+              <label class="form-label" for="semester">
+                সেমিস্টার / ইনটেক ইয়ার (SEMESTER) <span class="required">*</span>
+              </label>
+              <input type="text" id="semester" class="form-input" placeholder="Fall 22" required>
+            </div>
+
+            <!-- Department -->
+            <div class="form-group">
+              <label class="form-label" for="department">
+                ডিপার্টমেন্ট (DEPARTMENT) <span class="required">*</span>
+              </label>
+              <input type="text" id="department" class="form-input" placeholder="CSE/EEE/BBA/LLB/etc" required>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="form-group">
+              <label class="form-label" for="whatsapp">
+                হোয়াটসঅ্যাপ নম্বর (WHATSAPP) <span class="required">*</span>
+              </label>
+              <input type="tel" id="whatsapp" class="form-input" placeholder="017XXXXXXXX" required>
+            </div>
+
+            <!-- Gender -->
+            <div class="form-group">
+              <label class="form-label" for="gender">
+                লিঙ্গ (GENDER) <span class="required">*</span>
+              </label>
+              <select id="gender" class="form-input" required>
+                <option value="" disabled selected>নির্বাচন করুন</option>
+                <option value="Male">Male (পুরুষ)</option>
+                <option value="Female">Female (নারী)</option>
+                <option value="Other">Other (অন্যান্য)</option>
+              </select>
+            </div>
+
+            <!-- Gsuite Email -->
+            <div class="form-group">
+              <label class="form-label" for="gsuitEmail">
+                জিসুইট ইমেইল (GSUIT EMAIL) <span class="required">*</span>
+              </label>
+              <input type="email" id="gsuitEmail" class="form-input" placeholder="name@buic.edu.bd" required>
+            </div>
+
+            <!-- Personal Email -->
+            <div class="form-group">
+              <label class="form-label" for="personalEmail">
+                পার্সোনাল ইমেইল (PERSONAL EMAIL) <span class="required">*</span>
+              </label>
+              <input type="email" id="personalEmail" class="form-input" placeholder="name@gmail.com" required>
+            </div>
+
+            <!-- Facebook Link -->
+            <div class="form-group">
+              <label class="form-label" for="facebookLink">
+                ফেসবুক আইডি লিংক (Facebook ID Link)
+              </label>
+              <input type="url" id="facebookLink" class="form-input" placeholder="https://facebook.com/your.profile">
+            </div>
+
+            <!-- Bkash Txn ID -->
+            <div class="form-group">
+              <label class="form-label" for="bkashTxnId">
+                বিকাশ ট্রানজ্যাকশন আইডি (Bkash Txn ID) <span class="required">*</span>
+              </label>
+              <input type="text" id="bkashTxnId" class="form-input" placeholder="TXN-XXXXXXXXXX" required>
+            </div>
+
+            <!-- Survey Section -->
+            <div class="form-section-divider full-width">
+              <h2 class="form-section-title">📋 Survey Section</h2>
+              <p class="form-section-subtitle">Please answer the following questions to help us improve the programme.</p>
+            </div>
+
+            <!-- Seerah Read Before -->
+            <div class="form-group full-width">
+              <label class="form-label" for="seerahReadBefore">
+                Have you read Seerah before? If yes, which one / write down below
+              </label>
+              <input type="text" id="seerahReadBefore" class="form-input"
+                placeholder="e.g. Yes — Ar-Raheeq Al-Makhtum / No">
+            </div>
+
+            <!-- Engagement Suggestions -->
+            <div class="form-group full-width">
+              <label class="form-label" for="engagementSuggestions">
+                Any suggestions to make this competition more engaging to the students and reachable?
+              </label>
+              <textarea id="engagementSuggestions" class="form-textarea" rows="3"
+                placeholder="Share your ideas here..."></textarea>
+            </div>
+
+            <!-- Programme Expectation -->
+            <div class="form-group full-width">
+              <label class="form-label" for="programmeExpectation">
+                What’s your expectation from this programme?
+              </label>
+              <textarea id="programmeExpectation" class="form-textarea" rows="3"
+                placeholder="Write your expectations here..."></textarea>
+            </div>
+
+            <!-- Invitation Source -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                Where did you get the invitation of BRACUian Seerah Summit 1448 competition? <span class="required">*</span>
+              </label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="invitationSource" value="Deeni Halaqa BRACUians (Messenger GC)" required>
+                  <span>Deeni Halaqa BRACUians (Messenger GC)</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="invitationSource" value="Student community/Faculty Review group">
+                  <span>Student community/Faculty Review group</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="invitationSource" value="Through Friends">
+                  <span>Through Friends</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="invitationSource" value="BRACUian Islamic Community page">
+                  <span>BRACUian Islamic Community page</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="invitationSource" value="Deeni Halaqa BRACUians Sisters (Messenger GC)">
+                  <span>Deeni Halaqa BRACUians Sisters (Messenger GC)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Uswatun Hasanah Read -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                Have you read Uswatun Hasanah before? <span class="required">*</span>
+              </label>
+              <div class="radio-group inline">
+                <label class="radio-option">
+                  <input type="radio" name="uswatunHasanahRead" value="Yes" required>
+                  <span>Yes</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="uswatunHasanahRead" value="No">
+                  <span>No</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Uswatun Hasanah Participation -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                Do you want to participate in the competition with Uswatun Hasanah? <span class="required">*</span>
+              </label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="uswatunHasanahParticipation"
+                    value="Yes, I want to purchase Uswatun Hasanah, and participate" required>
+                  <span>Yes, I want to purchase Uswatun Hasanah, and participate</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="uswatunHasanahParticipation"
+                    value="I have this already and want to participate without purchasing it">
+                  <span>I have this already and want to participate without purchasing it</span>
+                </label>
+              </div>
+              <p class="form-note">
+                N.B: We encourage you to participate by purchasing the book as it has been taken special consideration
+                from its publisher to give our participants a decent discount.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submit-btn" class="btn btn-primary"
+            style="width: 100%; margin-top: 28px; font-size: 1.1rem; padding: 16px;">
+            রেজিস্ট্রেশান সাবমিট করুন
+          </button>
+        </form>
+
+        <p class="form-hint" style="text-align: center; margin-top: 16px;">
+          🔒 We Care about Your Privacy and Security
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/register.js"></script>
+</body>
+
+</html>

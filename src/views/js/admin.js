@@ -1,0 +1,368 @@
+// BUIC Quiz Portal - Admin Participant Directory Logic
+
+const COLSPAN = 15;
+let participantsData = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetchParticipants();
+  checkEmailStatus();
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', handleLogout);
+  }
+
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', filterParticipants);
+  }
+
+  const exportBtn = document.getElementById('export-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportToCSV);
+  }
+
+  const notifyEmailBtn = document.getElementById('notify-email-btn');
+  if (notifyEmailBtn) {
+    notifyEmailBtn.addEventListener('click', openNotifyModal);
+  }
+
+  const notifyForm = document.getElementById('notify-form');
+  if (notifyForm) {
+    notifyForm.addEventListener('submit', handleNotifySubmit);
+  }
+
+  const editForm = document.getElementById('edit-form');
+  if (editForm) {
+    editForm.addEventListener('submit', handleEditSubmit);
+  }
+});
+
+async function handleLogout() {
+  try {
+    const res = await fetch('/api/admin/logout', { method: 'POST' });
+    const data = await res.json();
+    showToast('Logout successful!', 'success');
+    setTimeout(() => {
+      window.location.href = data.redirectUrl || '/login';
+    }, 500);
+  } catch (err) {
+    console.error('Logout error:', err);
+    window.location.href = '/login';
+  }
+}
+
+async function fetchParticipants() {
+  const tbody = document.getElementById('participants-tbody');
+  const countBadge = document.getElementById('total-count');
+  const storageBadge = document.getElementById('storage-type-badge');
+
+  try {
+    tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য লোড হচ্ছে...</td></tr>`;
+
+    const response = await fetch('/api/participants');
+
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      participantsData = result.participants;
+      if (countBadge) countBadge.innerText = `${result.count} জন`;
+      if (storageBadge) storageBadge.innerText = result.storageType;
+      renderTable(participantsData);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
+    }
+  } catch (err) {
+    console.error('Error fetching participants:', err);
+    tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ডাটা সংগ্রহ করতে সমস্যা হয়েছে।</td></tr>`;
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('participants-tbody');
+  if (!tbody) return;
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; padding:30px; color:var(--text-muted);">কোনো নিবন্ধনের তথ্য পাওয়া যায়নি।</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map((item, index) => {
+    const createdDate = new Date(item.createdAt).toLocaleDateString('bn-BD', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    return `
+      <tr>
+        <td style="font-weight:700;">${index + 1}</td>
+        <td><span class="ticket-id" style="font-size:0.82rem; padding:4px 8px;">${item.ticketId}</span></td>
+        <td style="font-weight:600; color:var(--text-heading);">${escapeHtml(item.fullName)}</td>
+        <td>${escapeHtml(item.studentId)}</td>
+        <td>${escapeHtml(item.semester)}</td>
+        <td>${escapeHtml(item.department)}</td>
+        <td>${escapeHtml(item.whatsapp)}</td>
+        <td>${escapeHtml(item.gender)}</td>
+        <td style="word-break:break-all;">${escapeHtml(item.gsuitEmail)}</td>
+        <td style="word-break:break-all;">${escapeHtml(item.personalEmail)}</td>
+        <td>${escapeHtml(item.bkashTxnId)}</td>
+        <td style="font-size:0.82rem; max-width:140px; word-break:break-word;">${escapeHtml(item.invitationSource || '—')}</td>
+        <td>${escapeHtml(item.uswatunHasanahRead || '—')}</td>
+        <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
+        <td style="text-align:center;">
+          <div style="display:flex; gap:6px; justify-content:center;">
+            <button onclick="openEditModal(${item.id})" class="btn btn-secondary" style="padding:4px 10px; font-size:0.8rem;" title="তথ্য পরিবর্তন করুন">✏️ Edit</button>
+            <button onclick="deleteParticipantItem(${item.id}, '${escapeHtml(item.fullName)}')" class="btn" style="padding:4px 10px; font-size:0.8rem; background:rgba(239, 68, 68, 0.2); border:1px solid #ef4444; color:#fca5a5;" title="মুছে ফেলুন">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openEditModal(id) {
+  const participant = participantsData.find(p => p.id === id);
+  if (!participant) return;
+
+  document.getElementById('edit-id').value = participant.id;
+  document.getElementById('edit-name').value = participant.fullName || '';
+  document.getElementById('edit-studentId').value = participant.studentId || '';
+  document.getElementById('edit-semester').value = participant.semester || '';
+  document.getElementById('edit-department').value = participant.department || '';
+  document.getElementById('edit-whatsapp').value = participant.whatsapp || '';
+  document.getElementById('edit-gender').value = participant.gender || '';
+  document.getElementById('edit-facebookLink').value = participant.facebookLink || '';
+  document.getElementById('edit-gsuitEmail').value = participant.gsuitEmail || '';
+  document.getElementById('edit-personalEmail').value = participant.personalEmail || '';
+  document.getElementById('edit-bkashTxnId').value = participant.bkashTxnId || '';
+  document.getElementById('edit-seerahReadBefore').value = participant.seerahReadBefore || '';
+  document.getElementById('edit-engagementSuggestions').value = participant.engagementSuggestions || '';
+  document.getElementById('edit-programmeExpectation').value = participant.programmeExpectation || '';
+  document.getElementById('edit-invitationSource').value = participant.invitationSource || '';
+  document.getElementById('edit-uswatunHasanahRead').value = participant.uswatunHasanahRead || '';
+  document.getElementById('edit-uswatunHasanahParticipation').value = participant.uswatunHasanahParticipation || '';
+
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+async function handleEditSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById('edit-id').value;
+  const payload = {
+    fullName: document.getElementById('edit-name').value.trim(),
+    studentId: document.getElementById('edit-studentId').value.trim(),
+    semester: document.getElementById('edit-semester').value.trim(),
+    department: document.getElementById('edit-department').value.trim(),
+    whatsapp: document.getElementById('edit-whatsapp').value.trim(),
+    gender: document.getElementById('edit-gender').value,
+    facebookLink: document.getElementById('edit-facebookLink').value.trim(),
+    gsuitEmail: document.getElementById('edit-gsuitEmail').value.trim(),
+    personalEmail: document.getElementById('edit-personalEmail').value.trim(),
+    bkashTxnId: document.getElementById('edit-bkashTxnId').value.trim(),
+    seerahReadBefore: document.getElementById('edit-seerahReadBefore').value.trim(),
+    engagementSuggestions: document.getElementById('edit-engagementSuggestions').value.trim(),
+    programmeExpectation: document.getElementById('edit-programmeExpectation').value.trim(),
+    invitationSource: document.getElementById('edit-invitationSource').value,
+    uswatunHasanahRead: document.getElementById('edit-uswatunHasanahRead').value,
+    uswatunHasanahParticipation: document.getElementById('edit-uswatunHasanahParticipation').value
+  };
+
+  try {
+    const res = await fetch(`/api/participants/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('তথ্য সফলভাবে আপডেট করা হয়েছে!', 'success');
+      closeEditModal();
+      fetchParticipants();
+    } else {
+      showToast(result.message || 'আপডেট করা সম্ভব হয়নি', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  }
+}
+
+async function deleteParticipantItem(id, name) {
+  if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${name}"-এর ডাটা মুছে ফেলতে চান?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/participants/${id}`, {
+      method: 'DELETE'
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast('ডাটা সফলভাবে ডিলিট করা হয়েছে!', 'success');
+      fetchParticipants();
+    } else {
+      showToast(result.message || 'ডিলিট করা সম্ভব হয়নি', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  }
+}
+
+function filterParticipants(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const filtered = participantsData.filter(item => {
+    return item.fullName.toLowerCase().includes(query) ||
+           item.ticketId.toLowerCase().includes(query) ||
+           item.studentId.toLowerCase().includes(query) ||
+           item.whatsapp.toLowerCase().includes(query) ||
+           item.department.toLowerCase().includes(query) ||
+           item.gsuitEmail.toLowerCase().includes(query) ||
+           item.personalEmail.toLowerCase().includes(query) ||
+           item.bkashTxnId.toLowerCase().includes(query) ||
+           (item.invitationSource || '').toLowerCase().includes(query) ||
+           (item.seerahReadBefore || '').toLowerCase().includes(query);
+  });
+  renderTable(filtered);
+}
+
+function exportToCSV() {
+  if (participantsData.length === 0) {
+    showToast('ডাউনলোড করার মতো কোনো ডাটা নেই!', 'error');
+    return;
+  }
+
+  const headers = [
+    'ID', 'Ticket ID', 'Full Name', 'Student ID', 'Semester', 'Department', 'WhatsApp', 'Gender',
+    'Gsuit Email', 'Personal Email', 'Facebook Link', 'Bkash Txn ID',
+    'Seerah Read Before', 'Engagement Suggestions', 'Programme Expectation',
+    'Invitation Source', 'Uswatun Hasanah Read', 'Uswatun Hasanah Participation',
+    'Created At'
+  ];
+  const rows = participantsData.map(p => [
+    p.id,
+    `"${p.ticketId}"`,
+    `"${p.fullName}"`,
+    `"${p.studentId}"`,
+    `"${p.semester}"`,
+    `"${p.department}"`,
+    `"${p.whatsapp}"`,
+    `"${p.gender}"`,
+    `"${p.gsuitEmail}"`,
+    `"${p.personalEmail}"`,
+    `"${p.facebookLink || ''}"`,
+    `"${p.bkashTxnId}"`,
+    `"${(p.seerahReadBefore || '').replace(/"/g, '""')}"`,
+    `"${(p.engagementSuggestions || '').replace(/"/g, '""')}"`,
+    `"${(p.programmeExpectation || '').replace(/"/g, '""')}"`,
+    `"${p.invitationSource || ''}"`,
+    `"${p.uswatunHasanahRead || ''}"`,
+    `"${p.uswatunHasanahParticipation || ''}"`,
+    `"${p.createdAt}"`
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' 
+    + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `BUIC_Registrations_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast('CSV ফাইল ডাউনলোড সম্পন্ন হয়েছে!', 'success');
+}
+
+let emailConfigured = false;
+
+async function checkEmailStatus() {
+  try {
+    const response = await fetch('/api/notifications/email/status');
+    if (response.status === 401) return;
+
+    const result = await response.json();
+    emailConfigured = Boolean(result.success && result.configured);
+  } catch (err) {
+    console.error('Email status check failed:', err);
+    emailConfigured = false;
+  }
+}
+
+function openNotifyModal() {
+  if (!emailConfigured) {
+    showToast('SMTP সেটআপ নেই। .env-এ SMTP_HOST, SMTP_USER, SMTP_PASS দিন এবং সার্ভার রিস্টার্ট করুন।', 'error');
+    return;
+  }
+
+  if (participantsData.length === 0) {
+    showToast('কোনো অংশগ্রহণকারী নেই — ইমেইল পাঠানো যাবে না!', 'error');
+    return;
+  }
+
+  document.getElementById('notify-modal').style.display = 'flex';
+}
+
+function closeNotifyModal() {
+  document.getElementById('notify-modal').style.display = 'none';
+}
+
+async function handleNotifySubmit(e) {
+  e.preventDefault();
+
+  const subject = document.getElementById('notify-subject').value.trim();
+  const message = document.getElementById('notify-message').value.trim();
+  const submitBtn = document.getElementById('notify-submit-btn');
+  const originalText = submitBtn.innerHTML;
+
+  try {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ ইমেইল পাঠানো হচ্ছে...';
+
+    const response = await fetch('/api/notifications/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, message })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      showToast(result.message, 'success');
+      closeNotifyModal();
+      document.getElementById('notify-form').reset();
+    } else {
+      showToast(result.message || 'ইমেইল পাঠানো ব্যর্থ হয়েছে।', 'error');
+    }
+  } catch (err) {
+    console.error('Email notification error:', err);
+    showToast('ইমেইল পাঠাতে সমস্যা হয়েছে।', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[m];
+  });
+}
+

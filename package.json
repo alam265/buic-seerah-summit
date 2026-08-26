@@ -1,0 +1,22 @@
+{
+  "name": "BUIC-quiz-app",
+  "version": "1.0.0",
+  "description": "BUIC Seerah Competition & Quiz Registration Portal with Neon Database Integration",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^9.0.5",
+    "pg": "^8.13.1"
+  }
+}
