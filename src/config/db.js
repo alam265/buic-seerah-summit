@@ -36,6 +36,19 @@ CREATE TABLE IF NOT EXISTS admins (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS book_registrations (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    gsuit_email VARCHAR(100) NOT NULL,
+    whatsapp VARCHAR(20) NOT NULL,
+    is_participant BOOLEAN NOT NULL DEFAULT FALSE,
+    amount_tk INTEGER NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    txn_id VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 `;
 
 const MIGRATION_SQL = `
@@ -69,6 +82,8 @@ CREATE INDEX IF NOT EXISTS idx_registrations_gsuit_email ON registrations(gsuit_
 CREATE INDEX IF NOT EXISTS idx_registrations_personal_email ON registrations(personal_email);
 CREATE INDEX IF NOT EXISTS idx_registrations_ticket_id ON registrations(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username);
+CREATE INDEX IF NOT EXISTS idx_book_registrations_student_id ON book_registrations(student_id);
+CREATE INDEX IF NOT EXISTS idx_book_registrations_whatsapp ON book_registrations(whatsapp);
 `;
 
 async function seedDefaultAdmin(client) {
@@ -111,7 +126,7 @@ async function initDatabase() {
     await client.query(MIGRATION_SQL);
     await client.query(INDEXES_SQL);
     await seedDefaultAdmin(client);
-    console.log('✅ Database tables (registrations & admins) verified in Neon DB.');
+    console.log('✅ Database tables (registrations, book_registrations & admins) verified in Neon DB.');
     client.release();
 
     isNeonConnected = true;

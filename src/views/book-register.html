@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>বই রেজিস্ট্রেশন - BUIC Seerah Competition</title>
+  <meta name="description" content="উসওয়াতুন হাসানাহ বই ক্রয় ও রেজিস্ট্রেশন পোর্টাল।">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <div class="bg-glow-container">
+    <div class="bg-glow-orb bg-glow-orb-1"></div>
+    <div class="bg-glow-orb bg-glow-orb-2"></div>
+  </div>
+
+  <div id="header-placeholder"></div>
+
+  <main class="main-content">
+    <div class="container">
+
+      <div class="section-header">
+        <div class="badge-tag">📖 Book Registration</div>
+        <h1 class="section-title">উসওয়াতুন হাসানাহ — বই রেজিস্ট্রেশন</h1>
+        <p class="hero-subtitle">
+          কুইজ অংশগ্রহণকারীরা ১৫০ টাকায়, অন্যরা ২২০ টাকায় বইটি নিতে পারবেন।
+        </p>
+      </div>
+
+      <div class="form-wrapper">
+
+        <!-- Step 1 -->
+        <form id="book-step1-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="studentId">
+                স্টুডেন্ট আইডি (STUDENT ID) <span class="required">*</span>
+              </label>
+              <input type="text" id="studentId" class="form-input" placeholder="26301077" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="fullName">
+                পূর্ণ নাম (NAME) <span class="required">*</span>
+              </label>
+              <input type="text" id="fullName" class="form-input" placeholder="Abdullah" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="gsuitEmail">
+                জিসুইট ইমেইল (GSUIT EMAIL) <span class="required">*</span>
+              </label>
+              <input type="email" id="gsuitEmail" class="form-input" placeholder="name@buic.edu.bd" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="whatsapp">
+                হোয়াটসঅ্যাপ নম্বর (WHATSAPP) <span class="required">*</span>
+              </label>
+              <input type="tel" id="whatsapp" class="form-input" placeholder="017XXXXXXXX" required>
+            </div>
+          </div>
+
+          <button type="submit" id="lookup-btn" class="btn btn-primary"
+            style="width: 100%; margin-top: 28px; font-size: 1.1rem; padding: 16px;">
+            Enter
+          </button>
+        </form>
+
+        <!-- Step 2 -->
+        <form id="book-step2-form" style="display: none;">
+          <div id="price-banner" class="db-status-banner connected" style="margin-bottom: 24px;"></div>
+
+          <div class="form-group full-width" style="margin-bottom: 20px;">
+            <label class="form-label">
+              পেমেন্ট মেথড (Payment Method) <span class="required">*</span>
+            </label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="paymentMethod" value="cash" required>
+                <span>Cash</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="paymentMethod" value="bkash">
+                <span>bKash</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="bkash-panel" style="display: none; margin-bottom: 20px;">
+            <p class="form-note" id="bkash-instructions" style="margin-bottom: 14px;"></p>
+            <div class="form-group">
+              <label class="form-label" for="txnId">
+                Transaction ID (Tnx ID) <span class="required">*</span>
+              </label>
+              <input type="text" id="txnId" class="form-input" placeholder="Paste bKash Transaction ID">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap;">
+            <button type="button" id="back-btn" class="btn btn-secondary" style="flex: 1; padding: 14px;">
+              ← Back
+            </button>
+            <button type="submit" id="submit-book-btn" class="btn btn-primary" style="flex: 2; padding: 14px; font-size: 1.05rem;">
+              Submit
+            </button>
+          </div>
+        </form>
+
+        <!-- Success -->
+        <div id="book-success" style="display: none; text-align: center; padding: 20px 0;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">✅</div>
+          <h2 class="section-title" style="font-size: 1.6rem; margin-bottom: 10px;">Successful</h2>
+          <p id="success-summary" class="hero-subtitle" style="margin-bottom: 24px;"></p>
+          <a href="/" class="btn btn-primary" style="padding: 12px 24px;">Back to Home</a>
+        </div>
+
+        <p class="form-hint" style="text-align: center; margin-top: 16px;">
+          🔒 We Care about Your Privacy and Security
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/book-register.js"></script>
+</body>
+
+</html>

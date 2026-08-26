@@ -144,6 +144,26 @@ async function getAllParticipants() {
   };
 }
 
+async function isQuizParticipant(studentId) {
+  const cleanId = String(studentId || '').trim();
+  if (!cleanId) return false;
+
+  const { isNeonConnected } = getDbStatus();
+  const pool = getPool();
+
+  if (isNeonConnected && pool) {
+    const result = await pool.query(
+      'SELECT 1 FROM registrations WHERE student_id = $1 LIMIT 1',
+      [cleanId]
+    );
+    return result.rows.length > 0;
+  }
+
+  return localRegistrations.some(
+    (r) => String(r.studentId).toLowerCase() === cleanId.toLowerCase()
+  );
+}
+
 async function getRegistrationsCount() {
   const { isNeonConnected } = getDbStatus();
   const pool = getPool();
@@ -260,6 +280,7 @@ module.exports = {
   registerParticipant,
   getAllParticipants,
   getRegistrationsCount,
+  isQuizParticipant,
   updateParticipant,
   deleteParticipant
 };

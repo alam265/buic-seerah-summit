@@ -278,6 +278,60 @@ INSERT INTO admins (username, password) VALUES ('superadmin', 'admin12345');
 UPDATE admins SET password = 'new_secure_password' WHERE username = 'admin';</pre>
       </div> -->
 
+      <!-- Book Registrations Section -->
+      <div class="section-header" style="margin: 60px 0 30px;">
+        <h2 class="section-title" style="font-size: 1.8rem;">বই রেজিস্ট্রেশন (Book Orders)</h2>
+        <p class="hero-subtitle" style="margin-top: 8px;">উসওয়াতুন হাসানাহ বই ক্রয়ের সকল রেজিস্ট্রেশন।</p>
+      </div>
+
+      <div class="admin-bar"
+        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+        <div class="card" style="padding:12px 20px;">
+          <span style="font-size:0.8rem; color:var(--text-muted);">Book Orders:</span>
+          <span id="book-total-count"
+            style="font-size:1.3rem; font-weight:800; color:var(--accent-gold); margin-left:8px;">0</span>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button id="export-book-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
+            📥 Book CSV Export
+          </button>
+          <button onclick="fetchBookOrders()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
+            🔄 Refresh Books
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <input type="text" id="book-search-input" class="form-input"
+          placeholder="🔍 নাম, স্টুডেন্ট আইডি, হোয়াটসঅ্যাপ, txn ID দিয়ে খুঁজুন..."
+          style="padding: 14px 20px; font-size: 1rem;">
+      </div>
+
+      <div class="table-container" style="margin-bottom: 50px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>নাম</th>
+              <th>স্টুডেন্ট আইডি</th>
+              <th>জিসুইট ইমেইল</th>
+              <th>হোয়াটসঅ্যাপ</th>
+              <th>Participant</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Txn ID</th>
+              <th>তারিখ</th>
+              <th style="text-align:center;">অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="book-orders-tbody">
+            <tr>
+              <td colspan="11" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </main>
 

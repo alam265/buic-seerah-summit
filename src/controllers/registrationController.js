@@ -56,10 +56,10 @@ async function handleRegister(req, res) {
       uswatunHasanahParticipation
     } = req.body;
 
-    if (!fullName || !studentId || !department || !whatsapp || !gsuitEmail || !personalEmail || !gender || !bkashTxnId) {
+    if (!fullName || !studentId || !department || !whatsapp || !gsuitEmail || !personalEmail || !gender) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে পূর্ণ নাম, স্টুডেন্ট আইডি, ডিপার্টমেন্ট, হোয়াটসঅ্যাপ, জিসুইট ও পার্সোনাল ইমেইল, লিঙ্গ এবং বিকাশ ট্রানজ্যাকশন আইডি সঠিকভাবে পূরণ করুন।'
+        message: 'অনুগ্রহ করে পূর্ণ নাম, স্টুডেন্ট আইডি, ডিপার্টমেন্ট, হোয়াটসঅ্যাপ, জিসুইট ও পার্সোনাল ইমেইল এবং লিঙ্গ সঠিকভাবে পূরণ করুন।'
       });
     }
 

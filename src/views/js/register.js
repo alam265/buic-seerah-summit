@@ -27,7 +27,6 @@ async function handleRegistrationSubmit(e) {
     gsuitEmail: document.getElementById('gsuitEmail').value.trim(),
     personalEmail: document.getElementById('personalEmail').value.trim(),
     gender: document.getElementById('gender').value,
-    bkashTxnId: document.getElementById('bkashTxnId').value.trim(),
     seerahReadBefore: document.getElementById('seerahReadBefore').value.trim(),
     engagementSuggestions: document.getElementById('engagementSuggestions').value.trim(),
     programmeExpectation: document.getElementById('programmeExpectation').value.trim(),
@@ -36,7 +35,7 @@ async function handleRegistrationSubmit(e) {
     uswatunHasanahParticipation
   };
 
-  if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.gsuitEmail || !payload.personalEmail || !payload.gender || !payload.bkashTxnId) {
+  if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.gsuitEmail || !payload.personalEmail || !payload.gender) {
     showToast('অনুগ্রহ করে সকল প্রয়োজনীয় ঘর সঠিকভাবে পূরণ করুন।', 'error');
     return;
   }
@@ -141,11 +140,6 @@ function showTicketModal(reg, storageType) {
         <div class="ticket-field">
           <label>পার্সোনাল ইমেইল</label>
           <p style="word-break:break-all;">${reg.personalEmail}</p>
-        </div>
-
-        <div class="ticket-field">
-          <label>বিকাশ ট্রানজ্যাকশন আইডি</label>
-          <p>${reg.bkashTxnId}</p>
         </div>
       </div>
 

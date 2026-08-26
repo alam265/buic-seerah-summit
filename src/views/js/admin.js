@@ -1,10 +1,13 @@
 // BUIC Quiz Portal - Admin Participant Directory Logic
 
 const COLSPAN = 15;
+const BOOK_COLSPAN = 11;
 let participantsData = [];
+let bookOrdersData = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   fetchParticipants();
+  fetchBookOrders();
   checkEmailStatus();
 
   const logoutBtn = document.getElementById('logout-btn');
@@ -17,9 +20,19 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', filterParticipants);
   }
 
+  const bookSearchInput = document.getElementById('book-search-input');
+  if (bookSearchInput) {
+    bookSearchInput.addEventListener('input', filterBookOrders);
+  }
+
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) {
     exportBtn.addEventListener('click', exportToCSV);
+  }
+
+  const exportBookBtn = document.getElementById('export-book-btn');
+  if (exportBookBtn) {
+    exportBookBtn.addEventListener('click', exportBookOrdersToCSV);
   }
 
   const notifyEmailBtn = document.getElementById('notify-email-btn');
@@ -364,5 +377,142 @@ function escapeHtml(str) {
       "'": '&#039;'
     }[m];
   });
+}
+
+async function fetchBookOrders() {
+  const tbody = document.getElementById('book-orders-tbody');
+  const countBadge = document.getElementById('book-total-count');
+  if (!tbody) return;
+
+  try {
+    tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...</td></tr>`;
+
+    const response = await fetch('/api/book-orders');
+    if (response.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const result = await response.json();
+    if (result.success) {
+      bookOrdersData = result.orders || [];
+      if (countBadge) countBadge.innerText = String(result.count);
+      renderBookOrdersTable(bookOrdersData);
+    } else {
+      tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
+    }
+  } catch (err) {
+    console.error('Error fetching book orders:', err);
+    tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ বই রেজিস্ট্রেশন লোড করতে সমস্যা হয়েছে।</td></tr>`;
+  }
+}
+
+function renderBookOrdersTable(data) {
+  const tbody = document.getElementById('book-orders-tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; padding:30px; color:var(--text-muted);">কোনো বই রেজিস্ট্রেশন নেই।</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map((item, index) => {
+    const createdDate = new Date(item.createdAt).toLocaleDateString('bn-BD', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    const paymentLabel = item.paymentMethod === 'bkash' ? 'bKash' : 'Cash';
+
+    return `
+      <tr>
+        <td style="font-weight:700;">${index + 1}</td>
+        <td style="font-weight:600; color:var(--text-heading);">${escapeHtml(item.fullName)}</td>
+        <td>${escapeHtml(item.studentId)}</td>
+        <td style="word-break:break-all;">${escapeHtml(item.gsuitEmail)}</td>
+        <td>${escapeHtml(item.whatsapp)}</td>
+        <td>${item.isParticipant ? 'Yes' : 'No'}</td>
+        <td><strong>${item.amountTk} Tk</strong></td>
+        <td>${paymentLabel}</td>
+        <td>${escapeHtml(item.txnId || '—')}</td>
+        <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
+        <td style="text-align:center;">
+          <button onclick="deleteBookOrderItem(${item.id}, '${escapeHtml(item.fullName)}')" class="btn"
+            style="padding:4px 10px; font-size:0.8rem; background:rgba(239, 68, 68, 0.2); border:1px solid #ef4444; color:#fca5a5;"
+            title="মুছে ফেলুন">🗑️ Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterBookOrders(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const filtered = bookOrdersData.filter((item) => {
+    return (item.fullName || '').toLowerCase().includes(query) ||
+      (item.studentId || '').toLowerCase().includes(query) ||
+      (item.gsuitEmail || '').toLowerCase().includes(query) ||
+      (item.whatsapp || '').toLowerCase().includes(query) ||
+      (item.txnId || '').toLowerCase().includes(query) ||
+      (item.paymentMethod || '').toLowerCase().includes(query);
+  });
+  renderBookOrdersTable(filtered);
+}
+
+async function deleteBookOrderItem(id, name) {
+  if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${name}"-এর বই রেজিস্ট্রেশন মুছে ফেলতে চান?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/book-orders/${id}`, { method: 'DELETE' });
+    const result = await res.json();
+    if (result.success) {
+      showToast('বই রেজিস্ট্রেশন ডিলিট করা হয়েছে!', 'success');
+      fetchBookOrders();
+    } else {
+      showToast(result.message || 'ডিলিট করা সম্ভব হয়নি', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  }
+}
+
+function exportBookOrdersToCSV() {
+  if (bookOrdersData.length === 0) {
+    showToast('ডাউনলোড করার মতো কোনো বই রেজিস্ট্রেশন নেই!', 'error');
+    return;
+  }
+
+  const headers = [
+    'ID', 'Full Name', 'Student ID', 'Gsuit Email', 'WhatsApp',
+    'Is Participant', 'Amount Tk', 'Payment Method', 'Txn ID', 'Created At'
+  ];
+  const rows = bookOrdersData.map((p) => [
+    p.id,
+    `"${p.fullName}"`,
+    `"${p.studentId}"`,
+    `"${p.gsuitEmail}"`,
+    `"${p.whatsapp}"`,
+    p.isParticipant ? 'Yes' : 'No',
+    p.amountTk,
+    `"${p.paymentMethod}"`,
+    `"${p.txnId || ''}"`,
+    `"${p.createdAt}"`
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF'
+    + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `BUIC_Book_Registrations_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  showToast('Book CSV ফাইল ডাউনলোড সম্পন্ন হয়েছে!', 'success');
 }
 

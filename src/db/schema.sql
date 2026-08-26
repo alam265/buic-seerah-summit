@@ -40,6 +40,23 @@ CREATE TABLE IF NOT EXISTS admins (
 
 CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username);
 
+-- Book purchase registrations (Uswatun Hasanah)
+CREATE TABLE IF NOT EXISTS book_registrations (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(50) UNIQUE NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    gsuit_email VARCHAR(100) NOT NULL,
+    whatsapp VARCHAR(20) NOT NULL,
+    is_participant BOOLEAN NOT NULL DEFAULT FALSE,
+    amount_tk INTEGER NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    txn_id VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_book_registrations_student_id ON book_registrations(student_id);
+CREATE INDEX IF NOT EXISTS idx_book_registrations_whatsapp ON book_registrations(whatsapp);
+
 -- =====================================================================
 -- MIGRATION: Applied automatically on server startup (see db.js).
 -- Safe to re-run; IF NOT EXISTS / IF EXISTS prevent errors on fresh installs.
