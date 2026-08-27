@@ -4,6 +4,30 @@ const { getPool, getDbStatus, ensureDbReady } = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'BUIC_Seerah_admin_secret_key_2026';
 
+function isBcryptHash(storedPassword) {
+  return /^\$2[abxy]\$/.test(String(storedPassword || ''));
+}
+
+function normalizeBcryptHash(storedPassword) {
+  const hash = String(storedPassword || '');
+  // PHP/phpMyAdmin often store bcrypt as $2y$ — bcryptjs expects $2a$
+  if (hash.startsWith('$2y$')) {
+    return '$2a$' + hash.slice(4);
+  }
+  return hash;
+}
+
+async function verifyStoredPassword(storedPassword, plainPassword) {
+  const stored = String(storedPassword || '');
+  const plain = String(plainPassword || '');
+
+  if (isBcryptHash(stored)) {
+    return bcrypt.compare(plain, normalizeBcryptHash(stored));
+  }
+
+  return stored.trim() === plain.trim();
+}
+
 // Local Fallback Admin User
 const fallbackAdmin = {
   id: 1,
@@ -25,14 +49,7 @@ async function authenticateAdmin(username, password) {
       if (res.rows.length === 0) return null;
 
       const adminRow = res.rows[0];
-      let isMatch = false;
-
-      if (adminRow.password.startsWith('$2a$') || adminRow.password.startsWith('$2b$')) {
-        isMatch = await bcrypt.compare(password, adminRow.password);
-      } else {
-        // Support manual plain text password entry set by database admin in Neon SQL Editor
-        isMatch = (adminRow.password === password);
-      }
+      const isMatch = await verifyStoredPassword(adminRow.password, password);
 
       if (isMatch) {
         return { id: adminRow.id, username: adminRow.username };
@@ -46,13 +63,7 @@ async function authenticateAdmin(username, password) {
     console.warn('Admin login using env fallback (Neon not connected). dbError:', dbError || 'none');
     // Local Memory Fallback Mode
     const isUserMatch = (username.trim().toLowerCase() === fallbackAdmin.username.toLowerCase());
-    let isPassMatch = false;
-
-    if (fallbackAdmin.password.startsWith('$2a$') || fallbackAdmin.password.startsWith('$2b$')) {
-      isPassMatch = await bcrypt.compare(password, fallbackAdmin.password);
-    } else {
-      isPassMatch = (fallbackAdmin.password === password);
-    }
+    const isPassMatch = await verifyStoredPassword(fallbackAdmin.password, password);
 
     if (isUserMatch && isPassMatch) {
       return { id: fallbackAdmin.id, username: fallbackAdmin.username };

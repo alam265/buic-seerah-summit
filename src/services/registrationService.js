@@ -1,4 +1,4 @@
-const { getPool, getDbStatus } = require('../config/db');
+const { getDbContext } = require('../config/db');
 
 const localRegistrations = [];
 
@@ -50,8 +50,7 @@ async function registerParticipant({
   uswatunHasanahRead,
   uswatunHasanahParticipation
 }) {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool, dbError } = await getDbContext();
   const ticketId = generateTicketId();
   const cleanStudentId = studentId || '';
   const cleanSemester = semester || '';
@@ -68,6 +67,13 @@ async function registerParticipant({
   const cleanInvitationSource = invitationSource || null;
   const cleanUswatunHasanahRead = uswatunHasanahRead || null;
   const cleanUswatunHasanahParticipation = uswatunHasanahParticipation || null;
+
+  if (process.env.VERCEL && !isNeonConnected) {
+    const err = new Error('Database is not ready. Please try again in a moment.');
+    err.code = 'DB_NOT_READY';
+    err.dbError = dbError;
+    throw err;
+  }
 
   if (isNeonConnected && pool) {
     const insertQuery = `
@@ -124,8 +130,7 @@ async function registerParticipant({
 }
 
 async function getAllParticipants() {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query('SELECT * FROM registrations ORDER BY id DESC');
@@ -148,8 +153,7 @@ async function isQuizParticipant(studentId) {
   const cleanId = String(studentId || '').trim();
   if (!cleanId) return false;
 
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query(
@@ -165,8 +169,7 @@ async function isQuizParticipant(studentId) {
 }
 
 async function getRegistrationsCount() {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     try {
@@ -199,8 +202,7 @@ async function updateParticipant(id, {
   uswatunHasanahRead,
   uswatunHasanahParticipation
 }) {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const updateQuery = `
@@ -261,8 +263,7 @@ async function updateParticipant(id, {
 }
 
 async function deleteParticipant(id) {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const deleteQuery = 'DELETE FROM registrations WHERE id = $1 RETURNING *;';

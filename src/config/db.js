@@ -165,9 +165,20 @@ function ensureDbReady() {
   return dbInitPromise;
 }
 
+/** Await Neon init, then return pool + connection status (use in all write/read paths). */
+async function getDbContext() {
+  await ensureDbReady();
+  return {
+    isNeonConnected,
+    pool: getPool(),
+    dbError
+  };
+}
+
 module.exports = {
   initDatabase,
   ensureDbReady,
+  getDbContext,
   getPool,
   getDbStatus
 };

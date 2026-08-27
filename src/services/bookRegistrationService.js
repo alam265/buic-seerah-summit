@@ -1,4 +1,4 @@
-const { getPool, getDbStatus } = require('../config/db');
+const { getDbContext } = require('../config/db');
 const { isQuizParticipant } = require('./registrationService');
 
 const PARTICIPANT_PRICE = 150;
@@ -38,8 +38,7 @@ async function lookupParticipantPricing(studentId) {
 
 async function findBookRegistrationByStudentId(studentId) {
   const cleanId = String(studentId || '').trim();
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query(
@@ -82,8 +81,14 @@ async function createBookRegistration({
   const isParticipant = await isQuizParticipant(cleanStudentId);
   const amountTk = resolveAmount(isParticipant);
 
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool, dbError } = await getDbContext();
+
+  if (process.env.VERCEL && !isNeonConnected) {
+    const err = new Error('Database is not ready. Please try again in a moment.');
+    err.code = 'DB_NOT_READY';
+    err.dbError = dbError;
+    throw err;
+  }
 
   if (isNeonConnected && pool) {
     const insertQuery = `
@@ -132,8 +137,7 @@ async function createBookRegistration({
 }
 
 async function getAllBookRegistrations() {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query('SELECT * FROM book_registrations ORDER BY id DESC');
@@ -153,8 +157,7 @@ async function getAllBookRegistrations() {
 }
 
 async function deleteBookRegistration(id) {
-  const { isNeonConnected } = getDbStatus();
-  const pool = getPool();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query(
