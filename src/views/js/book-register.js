@@ -128,11 +128,57 @@ function showStep2(result) {
 function updateBkashInstructions() {
   const el = document.getElementById('bkash-instructions');
   const number = bkashNumber || '—';
+  const canCopy = Boolean(bkashNumber);
+
   el.innerHTML = `
     bKash Send Money <strong>${formState.amountTk} Tk</strong> to this account
-    <strong style="color:var(--accent-gold);">${escapeHtml(number)}</strong>
+    ${canCopy
+      ? `<button type="button" class="bkash-copy-btn" data-copy="${escapeHtml(number)}" title="Copy number" aria-label="Copy bKash number ${escapeHtml(number)}">
+          <span class="bkash-copy-number">${escapeHtml(number)}</span>
+          <svg class="bkash-copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>`
+      : `<strong style="color:var(--accent-gold);">${escapeHtml(number)}</strong>`}
     and enter the bKash number you sent from below.
   `;
+
+  const btn = el.querySelector('.bkash-copy-btn');
+  if (btn) {
+    btn.addEventListener('click', copyBkashNumber);
+  }
+}
+
+async function copyBkashNumber(e) {
+  const btn = e.currentTarget;
+  const number = btn.dataset.copy;
+  if (!number) return;
+
+  try {
+    await navigator.clipboard.writeText(number);
+    showToast('bKash নম্বর কপি হয়েছে', 'success');
+  } catch (err) {
+    // Fallback for older browsers / insecure contexts
+    const range = document.createRange();
+    const span = document.createElement('span');
+    span.textContent = number;
+    span.style.position = 'fixed';
+    span.style.left = '-9999px';
+    document.body.appendChild(span);
+    range.selectNodeContents(span);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    try {
+      document.execCommand('copy');
+      showToast('bKash নম্বর কপি হয়েছে', 'success');
+    } catch (copyErr) {
+      showToast('কপি করা যায়নি — নম্বরটি সিলেক্ট করে কপি করুন।', 'error');
+    }
+    selection.removeAllRanges();
+    span.remove();
+  }
 }
 
 function onPaymentMethodChange() {
