@@ -2,7 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPartials();
-  initTheme();
   initNavbar();
   initCountdown();
   checkBackendHealth();
@@ -32,38 +31,6 @@ async function loadPartials() {
     } catch (e) {
       console.warn('Could not load footer partial dynamically:', e);
     }
-  }
-}
-
-function initTheme() {
-  const themeBtn = document.getElementById('theme-toggle');
-  const storedTheme = localStorage.getItem('BUIC-theme') || 'dark';
-
-  document.documentElement.setAttribute('data-theme', storedTheme);
-  updateThemeIcon(storedTheme);
-
-  if (themeBtn) {
-    themeBtn.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('BUIC-theme', newTheme);
-      updateThemeIcon(newTheme);
-    });
-  }
-}
-
-function updateThemeIcon(theme) {
-  const themeBtn = document.getElementById('theme-toggle');
-  if (!themeBtn) return;
-
-  if (theme === 'dark') {
-    themeBtn.innerHTML = '☀️';
-    themeBtn.setAttribute('title', 'Switch to Light Mode');
-  } else {
-    themeBtn.innerHTML = '🌙';
-    themeBtn.setAttribute('title', 'Switch to Dark Mode');
   }
 }
 
