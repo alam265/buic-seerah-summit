@@ -117,6 +117,14 @@ async function handleGetParticipants(req, res) {
     });
   } catch (err) {
     console.error('Participants Controller Error:', err);
+    if (err.code === 'DB_NOT_READY') {
+      return res.status(503).json({
+        success: false,
+        code: 'DB_NOT_READY',
+        retryable: true,
+        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'ডাটা সংগ্রহ করতে ব্যর্থ হয়েছে: ' + err.message

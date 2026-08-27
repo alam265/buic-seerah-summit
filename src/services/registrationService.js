@@ -1,4 +1,4 @@
-const { getDbContext } = require('../config/db');
+const { getDbContext, requireNeonOrLocalDev } = require('../config/db');
 
 const localRegistrations = [];
 
@@ -68,11 +68,8 @@ async function registerParticipant({
   const cleanUswatunHasanahRead = uswatunHasanahRead || null;
   const cleanUswatunHasanahParticipation = uswatunHasanahParticipation || null;
 
-  if (process.env.VERCEL && !isNeonConnected) {
-    const err = new Error('Database is not ready. Please try again in a moment.');
-    err.code = 'DB_NOT_READY';
-    err.dbError = dbError;
-    throw err;
+  if (!isNeonConnected) {
+    requireNeonOrLocalDev();
   }
 
   if (isNeonConnected && pool) {
@@ -130,7 +127,7 @@ async function registerParticipant({
 }
 
 async function getAllParticipants() {
-  const { isNeonConnected, pool } = await getDbContext();
+  const { isNeonConnected, pool, dbError } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query('SELECT * FROM registrations ORDER BY id DESC');
@@ -141,6 +138,8 @@ async function getAllParticipants() {
       storageType: 'Neon PostgreSQL'
     };
   }
+
+  requireNeonOrLocalDev();
 
   return {
     count: localRegistrations.length,

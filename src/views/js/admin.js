@@ -2,8 +2,29 @@
 
 const COLSPAN = 14;
 const BOOK_COLSPAN = 11;
+const MAX_FETCH_RETRIES = 5;
+const FETCH_RETRY_BASE_MS = 2000;
 let participantsData = [];
 let bookOrdersData = [];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function updateDbStatusBanner(storageType) {
+  const banner = document.getElementById('db-status-banner');
+  if (!banner || !storageType) return;
+
+  const isNeon = storageType.includes('Neon');
+  banner.className = isNeon ? 'db-status-banner connected' : 'db-status-banner fallback';
+  banner.innerHTML = isNeon
+    ? '<span><span class="db-status-dot"></span> 🟢 Neon PostgreSQL: <strong>Connected</strong></span>'
+    : `<span><span class="db-status-dot"></span> 🟡 Storage: <strong>${escapeHtml(storageType)}</strong></span>`;
+}
+
+function shouldRetryFetch(response, result) {
+  return response.status === 503 || result?.code === 'DB_NOT_READY' || result?.retryable === true;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   fetchParticipants();
@@ -65,13 +86,17 @@ async function handleLogout() {
   }
 }
 
-async function fetchParticipants() {
+async function fetchParticipants(retryCount = 0) {
   const tbody = document.getElementById('participants-tbody');
   const countBadge = document.getElementById('total-count');
   const storageBadge = document.getElementById('storage-type-badge');
+  if (!tbody) return;
 
   try {
-    tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য লোড হচ্ছে...</td></tr>`;
+    const retryHint = retryCount > 0
+      ? ` (পুনরায় চেষ্টা ${retryCount}/${MAX_FETCH_RETRIES})`
+      : '';
+    tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য লোড হচ্ছে...${retryHint}</td></tr>`;
 
     const response = await fetch('/api/participants');
 
@@ -82,16 +107,26 @@ async function fetchParticipants() {
 
     const result = await response.json();
 
+    if (shouldRetryFetch(response, result) && retryCount < MAX_FETCH_RETRIES) {
+      await sleep(FETCH_RETRY_BASE_MS * (retryCount + 1));
+      return fetchParticipants(retryCount + 1);
+    }
+
     if (result.success) {
-      participantsData = result.participants;
+      participantsData = result.participants || [];
       if (countBadge) countBadge.innerText = `${result.count} জন`;
-      if (storageBadge) storageBadge.innerText = result.storageType;
+      if (storageBadge) storageBadge.innerText = result.storageType || '';
+      updateDbStatusBanner(result.storageType);
       renderTable(participantsData);
     } else {
       tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
     }
   } catch (err) {
     console.error('Error fetching participants:', err);
+    if (retryCount < MAX_FETCH_RETRIES) {
+      await sleep(FETCH_RETRY_BASE_MS * (retryCount + 1));
+      return fetchParticipants(retryCount + 1);
+    }
     tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ডাটা সংগ্রহ করতে সমস্যা হয়েছে।</td></tr>`;
   }
 }
@@ -378,13 +413,16 @@ function escapeHtml(str) {
   });
 }
 
-async function fetchBookOrders() {
+async function fetchBookOrders(retryCount = 0) {
   const tbody = document.getElementById('book-orders-tbody');
   const countBadge = document.getElementById('book-total-count');
   if (!tbody) return;
 
   try {
-    tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...</td></tr>`;
+    const retryHint = retryCount > 0
+      ? ` (পুনরায় চেষ্টা ${retryCount}/${MAX_FETCH_RETRIES})`
+      : '';
+    tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...${retryHint}</td></tr>`;
 
     const response = await fetch('/api/book-orders');
     if (response.status === 401) {
@@ -393,6 +431,12 @@ async function fetchBookOrders() {
     }
 
     const result = await response.json();
+
+    if (shouldRetryFetch(response, result) && retryCount < MAX_FETCH_RETRIES) {
+      await sleep(FETCH_RETRY_BASE_MS * (retryCount + 1));
+      return fetchBookOrders(retryCount + 1);
+    }
+
     if (result.success) {
       bookOrdersData = result.orders || [];
       if (countBadge) countBadge.innerText = String(result.count);
@@ -402,6 +446,10 @@ async function fetchBookOrders() {
     }
   } catch (err) {
     console.error('Error fetching book orders:', err);
+    if (retryCount < MAX_FETCH_RETRIES) {
+      await sleep(FETCH_RETRY_BASE_MS * (retryCount + 1));
+      return fetchBookOrders(retryCount + 1);
+    }
     tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ বই রেজিস্ট্রেশন লোড করতে সমস্যা হয়েছে।</td></tr>`;
   }
 }

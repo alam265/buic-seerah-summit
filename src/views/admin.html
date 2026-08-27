@@ -33,14 +33,23 @@
         </p> -->
       </div>
 
+      <div id="db-status-banner" class="db-status-banner connected" style="margin-bottom: 24px;">
+        <span><span class="db-status-dot"></span> ডাটাবেজ স্ট্যাটাস যাচাই হচ্ছে...</span>
+      </div>
+
       <!-- Stats Bar & Actions -->
       <div class="admin-bar"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
-        <div style="display:flex; gap:16px; align-items:center;">
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
           <div class="card" style="padding:12px 20px;">
             <span style="font-size:0.8rem; color:var(--text-muted);">Registered:</span>
             <span id="total-count"
               style="font-size:1.3rem; font-weight:800; color:var(--accent-emerald); margin-left:8px;">0 জন</span>
+          </div>
+          <div class="card" style="padding:12px 20px;">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Storage:</span>
+            <span id="storage-type-badge"
+              style="font-size:0.9rem; font-weight:600; color:var(--text-heading); margin-left:8px;">—</span>
           </div>
         </div>
 

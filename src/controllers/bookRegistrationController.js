@@ -149,6 +149,14 @@ async function handleGetBookOrders(req, res) {
     });
   } catch (err) {
     console.error('Book orders list error:', err);
+    if (err.code === 'DB_NOT_READY') {
+      return res.status(503).json({
+        success: false,
+        code: 'DB_NOT_READY',
+        retryable: true,
+        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'বই রেজিস্ট্রেশন তালিকা সংগ্রহ করতে ব্যর্থ: ' + err.message

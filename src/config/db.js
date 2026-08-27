@@ -7,6 +7,13 @@ let pool = null;
 let isNeonConnected = false;
 let dbError = null;
 let dbInitPromise = null;
+let initRetryUsed = false;
+
+const INIT_RETRY_DELAYS_MS = [1000, 2000, 3000, 5000];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function normalizeDatabaseUrl(url) {
   if (!url) return url;
@@ -109,41 +116,84 @@ async function seedDefaultAdmin(client) {
   }
 }
 
+function isDatabaseConfigured() {
+  const dbUrl = normalizeDatabaseUrl(process.env.DATABASE_URL);
+  return Boolean(dbUrl && dbUrl.trim() !== '' && !dbUrl.includes('your_password_here'));
+}
+
+function createDbNotReadyError(message) {
+  const err = new Error(message || 'Database is not ready. Please try again in a moment.');
+  err.code = 'DB_NOT_READY';
+  err.dbError = dbError;
+  return err;
+}
+
+async function teardownPool() {
+  if (!pool) return;
+  try {
+    await pool.end();
+  } catch (_) {
+    // ignore pool shutdown errors between retries
+  }
+  pool = null;
+}
+
+async function connectDatabase(dbUrl) {
+  pool = new Pool({
+    connectionString: dbUrl,
+    ssl: dbUrl.includes('neon.tech') || dbUrl.includes('sslmode=require')
+      ? { rejectUnauthorized: false }
+      : undefined
+  });
+
+  const client = await pool.connect();
+  console.log('✅ Connected to Neon PostgreSQL Database successfully!');
+
+  await client.query(CREATE_TABLES_SQL);
+  await client.query(MIGRATION_SQL);
+  await client.query(INDEXES_SQL);
+  await seedDefaultAdmin(client);
+  console.log('✅ Database tables (registrations, book_registrations & admins) verified in Neon DB.');
+  client.release();
+
+  isNeonConnected = true;
+  dbError = null;
+}
+
 async function initDatabase() {
   const rawUrl = process.env.DATABASE_URL;
   const dbUrl = normalizeDatabaseUrl(rawUrl);
-  if (!dbUrl || dbUrl.trim() === '' || dbUrl.includes('your_password_here')) {
+  if (!isDatabaseConfigured()) {
     console.log('⚠️ DATABASE_URL is not set or using placeholder. Running in Local Fallback mode.');
     isNeonConnected = false;
     dbError = 'DATABASE_URL not configured in .env file.';
     return;
   }
 
-  try {
-    pool = new Pool({
-      connectionString: dbUrl,
-      ssl: dbUrl.includes('neon.tech') || dbUrl.includes('sslmode=require')
-        ? { rejectUnauthorized: false }
-        : undefined
-    });
+  isNeonConnected = false;
+  dbError = null;
 
-    const client = await pool.connect();
-    console.log('✅ Connected to Neon PostgreSQL Database successfully!');
-    
-    await client.query(CREATE_TABLES_SQL);
-    await client.query(MIGRATION_SQL);
-    await client.query(INDEXES_SQL);
-    await seedDefaultAdmin(client);
-    console.log('✅ Database tables (registrations, book_registrations & admins) verified in Neon DB.');
-    client.release();
+  for (let attempt = 0; attempt < INIT_RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) {
+      console.log(`⏳ Retrying Neon connection (${attempt + 1}/${INIT_RETRY_DELAYS_MS.length})...`);
+      await sleep(INIT_RETRY_DELAYS_MS[attempt - 1]);
+      await teardownPool();
+    }
 
-    isNeonConnected = true;
-    dbError = null;
-  } catch (err) {
-    console.error('❌ Neon Database connection failed:', err.message);
-    isNeonConnected = false;
-    dbError = err.message;
+    try {
+      await connectDatabase(dbUrl);
+      return;
+    } catch (err) {
+      console.error(`❌ Neon Database connection failed (attempt ${attempt + 1}):`, err.message);
+      isNeonConnected = false;
+      dbError = err.message;
+      await teardownPool();
+    }
   }
+}
+
+function resetDbInit() {
+  dbInitPromise = null;
 }
 
 function getPool() {
@@ -168,6 +218,14 @@ function ensureDbReady() {
 /** Await Neon init, then return pool + connection status (use in all write/read paths). */
 async function getDbContext() {
   await ensureDbReady();
+
+  // One extra init round per instance if Neon was still waking up on first cold start
+  if (!isNeonConnected && isDatabaseConfigured() && !initRetryUsed) {
+    initRetryUsed = true;
+    resetDbInit();
+    await ensureDbReady();
+  }
+
   return {
     isNeonConnected,
     pool: getPool(),
@@ -175,10 +233,20 @@ async function getDbContext() {
   };
 }
 
+/** Throw when DATABASE_URL is set but Neon is not connected (avoids silent empty fallback). */
+function requireNeonOrLocalDev() {
+  if (isDatabaseConfigured() && !isNeonConnected) {
+    throw createDbNotReadyError();
+  }
+}
+
 module.exports = {
   initDatabase,
   ensureDbReady,
   getDbContext,
   getPool,
-  getDbStatus
+  getDbStatus,
+  isDatabaseConfigured,
+  createDbNotReadyError,
+  requireNeonOrLocalDev
 };
