@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { getPool, getDbStatus } = require('../config/db');
+const { getPool, getDbStatus, ensureDbReady } = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'BUIC_Seerah_admin_secret_key_2026';
 
@@ -14,7 +14,9 @@ const fallbackAdmin = {
 async function authenticateAdmin(username, password) {
   if (!username || !password) return null;
 
-  const { isNeonConnected } = getDbStatus();
+  await ensureDbReady();
+
+  const { isNeonConnected, dbError } = getDbStatus();
   const pool = getPool();
 
   if (isNeonConnected && pool) {
@@ -37,10 +39,11 @@ async function authenticateAdmin(username, password) {
       }
       return null;
     } catch (err) {
-      console.error('Error verifying admin:', err);
+      console.error('Error verifying admin against Neon:', err.message, dbError || '');
       return null;
     }
   } else {
+    console.warn('Admin login using env fallback (Neon not connected). dbError:', dbError || 'none');
     // Local Memory Fallback Mode
     const isUserMatch = (username.trim().toLowerCase() === fallbackAdmin.username.toLowerCase());
     let isPassMatch = false;

@@ -6,6 +6,13 @@ const bcrypt = require('bcryptjs');
 let pool = null;
 let isNeonConnected = false;
 let dbError = null;
+let dbInitPromise = null;
+
+function normalizeDatabaseUrl(url) {
+  if (!url) return url;
+  // channel_binding=require breaks pg on some serverless runtimes (e.g. Vercel)
+  return url.replace(/[&?]channel_binding=[^&]*/gi, '').replace(/\?&/, '?').replace(/\?$/, '');
+}
 
 const CREATE_TABLES_SQL = `
 CREATE TABLE IF NOT EXISTS registrations (
@@ -103,7 +110,8 @@ async function seedDefaultAdmin(client) {
 }
 
 async function initDatabase() {
-  const dbUrl = process.env.DATABASE_URL;
+  const rawUrl = process.env.DATABASE_URL;
+  const dbUrl = normalizeDatabaseUrl(rawUrl);
   if (!dbUrl || dbUrl.trim() === '' || dbUrl.includes('your_password_here')) {
     console.log('⚠️ DATABASE_URL is not set or using placeholder. Running in Local Fallback mode.');
     isNeonConnected = false;
@@ -114,9 +122,9 @@ async function initDatabase() {
   try {
     pool = new Pool({
       connectionString: dbUrl,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      ssl: dbUrl.includes('neon.tech') || dbUrl.includes('sslmode=require')
+        ? { rejectUnauthorized: false }
+        : undefined
     });
 
     const client = await pool.connect();
@@ -149,8 +157,17 @@ function getDbStatus() {
   };
 }
 
+/** Wait for DB init (required on serverless — login must not run before Neon is ready). */
+function ensureDbReady() {
+  if (!dbInitPromise) {
+    dbInitPromise = initDatabase();
+  }
+  return dbInitPromise;
+}
+
 module.exports = {
   initDatabase,
+  ensureDbReady,
   getPool,
   getDbStatus
 };

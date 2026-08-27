@@ -22,8 +22,10 @@ async function handleAdminLogin(req, res) {
     const token = generateAdminToken(admin);
 
     // Set cookie for browser session
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
     res.cookie('admin_token', token, {
       httpOnly: true,
+      secure: isProduction,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax'
     });

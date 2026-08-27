@@ -4,7 +4,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
-const { initDatabase } = require('./src/config/db');
+const { ensureDbReady } = require('./src/config/db');
 const apiRoutes = require('./src/routes/apiRoutes');
 const pageRoutes = require('./src/routes/pageRoutes');
 
@@ -30,11 +30,19 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal Server Error: ' + err.message });
 });
 
-// Initialize DB and Boot Express Server
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 BUIC Quiz Portal Server running at http://localhost:${PORT}`);
-  });
+// Warm DB on boot (serverless + local)
+ensureDbReady().catch((err) => {
+  console.error('Database init failed on startup:', err.message);
 });
-// Connected with Neon PostgreSQL Database
+
+// Vercel serverless: export handler; local: listen on PORT
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  ensureDbReady().then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 BUIC Quiz Portal Server running at http://localhost:${PORT}`);
+    });
+  });
+}
 
