@@ -17,7 +17,7 @@ function mapBookRow(row) {
     isParticipant: Boolean(row.is_participant),
     amountTk: row.amount_tk,
     paymentMethod: row.payment_method,
-    txnId: row.txn_id || '',
+    senderBkashNumber: row.txn_id || '',
     createdAt: row.created_at
   };
 }
@@ -61,14 +61,16 @@ async function createBookRegistration({
   gsuitEmail,
   whatsapp,
   paymentMethod,
-  txnId
+  senderBkashNumber
 }) {
   const cleanStudentId = String(studentId || '').trim();
   const cleanFullName = String(fullName || '').trim();
   const cleanGsuitEmail = String(gsuitEmail || '').trim();
   const cleanWhatsapp = String(whatsapp || '').trim();
   const cleanPaymentMethod = String(paymentMethod || '').trim().toLowerCase();
-  const cleanTxnId = cleanPaymentMethod === 'bkash' ? String(txnId || '').trim() : '';
+  const cleanSenderBkash = cleanPaymentMethod === 'bkash'
+    ? String(senderBkashNumber || '').trim()
+    : '';
 
   const existing = await findBookRegistrationByStudentId(cleanStudentId);
   if (existing) {
@@ -100,7 +102,7 @@ async function createBookRegistration({
       isParticipant,
       amountTk,
       cleanPaymentMethod,
-      cleanTxnId || null
+      cleanSenderBkash || null
     ];
     const result = await pool.query(insertQuery, values);
     return {
@@ -118,7 +120,7 @@ async function createBookRegistration({
     isParticipant,
     amountTk,
     paymentMethod: cleanPaymentMethod,
-    txnId: cleanTxnId,
+    senderBkashNumber: cleanSenderBkash,
     createdAt: new Date().toISOString()
   };
   localBookRegistrations.push(newReg);

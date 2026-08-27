@@ -619,6 +619,12 @@ body {
   color: var(--text-heading);
 }
 
+.event-card-meta-note {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .event-card-summary {
   color: var(--text-muted);
   font-size: 0.95rem;
@@ -671,7 +677,15 @@ body {
   font-weight: 800;
   color: var(--text-heading);
   letter-spacing: -0.4px;
+  margin: 0 0 12px;
+}
+
+.event-detail-tagline {
   margin: 0 0 24px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1.55;
+  font-weight: 500;
 }
 
 .event-detail-meta {
@@ -717,6 +731,154 @@ body {
 
 .event-detail-body p:last-child {
   margin-bottom: 0;
+}
+
+.event-detail-body strong {
+  color: var(--text-heading);
+  font-weight: 600;
+}
+
+.event-detail-block {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border-color);
+}
+
+.event-detail-list {
+  margin: 0 0 14px;
+  padding-left: 1.2rem;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.event-detail-list li {
+  margin-bottom: 8px;
+}
+
+.event-detail-list li:last-child {
+  margin-bottom: 0;
+}
+
+.event-detail-list--featured li {
+  margin-bottom: 14px;
+}
+
+.event-detail-prizes {
+  margin-top: 36px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-color);
+}
+
+.event-detail-prizes h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 8px;
+}
+
+.event-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
+  gap: 28px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+.event-detail--main {
+  max-width: none;
+  margin: 0;
+}
+
+.event-prize-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(212, 175, 55, 0.08);
+  position: sticky;
+  top: calc(var(--header-height) + 16px);
+}
+
+.event-prize-card-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d4af37;
+  margin: 0 0 8px;
+}
+
+.event-prize-card-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.2px;
+  margin: 0 0 10px;
+}
+
+.event-prize-card-lead {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.event-prize-card .event-prize-list li {
+  grid-template-columns: 1fr;
+  gap: 2px;
+  padding: 12px 14px;
+}
+
+.event-prize-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.event-prize-list li {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.9fr) minmax(100px, 0.7fr) 1.2fr;
+  gap: 8px 16px;
+  align-items: baseline;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.event-prize-place {
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 0.95rem;
+}
+
+.event-prize-amount {
+  font-weight: 700;
+  color: #d4af37;
+  font-size: 0.95rem;
+}
+
+.event-prize-extra {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.event-prize-total {
+  margin: 16px 0 0;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 1rem;
+}
+
+.event-prize-tba {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 .event-detail--wide {
@@ -776,6 +938,7 @@ body {
   margin-top: 36px;
   padding-top: 32px;
   border-top: 1px solid var(--border-color);
+  scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
 .event-detail-syllabus h2 {
@@ -2088,6 +2251,13 @@ body {
   .event-detail {
     padding: 28px 22px;
   }
+  .event-detail-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .event-prize-card {
+    position: static;
+  }
   .event-detail-title {
     font-size: 1.75rem;
   }
@@ -2098,6 +2268,10 @@ body {
   .event-detail-book-visual {
     max-width: 220px;
     margin: 0 auto;
+  }
+  .event-prize-list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
   .btn {
     padding: 12px 24px;

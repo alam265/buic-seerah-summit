@@ -75,7 +75,7 @@ async function handleBookRegister(req, res) {
       gsuitEmail,
       whatsapp,
       paymentMethod,
-      txnId
+      senderBkashNumber
     } = req.body;
 
     if (!studentId || !fullName || !gsuitEmail || !whatsapp || !paymentMethod) {
@@ -93,10 +93,10 @@ async function handleBookRegister(req, res) {
       });
     }
 
-    if (method === 'bkash' && !String(txnId || '').trim()) {
+    if (method === 'bkash' && !String(senderBkashNumber || '').trim()) {
       return res.status(400).json({
         success: false,
-        message: 'bKash দিয়ে পেমেন্ট করলে Transaction ID দিতে হবে।'
+        message: 'bKash দিয়ে পেমেন্ট করলে যে নম্বর থেকে পাঠিয়েছেন সেটি দিতে হবে।'
       });
     }
 
@@ -106,7 +106,7 @@ async function handleBookRegister(req, res) {
       gsuitEmail,
       whatsapp,
       paymentMethod: method,
-      txnId
+      senderBkashNumber
     });
 
     return res.status(201).json({

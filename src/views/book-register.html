@@ -52,7 +52,7 @@
               <label class="form-label" for="gsuitEmail">
                 জিসুইট ইমেইল (GSUIT EMAIL) <span class="required">*</span>
               </label>
-              <input type="email" id="gsuitEmail" class="form-input" placeholder="name@buic.edu.bd" required>
+              <input type="email" id="gsuitEmail" class="form-input" placeholder="name@g.bracu.ac.bd" required>
             </div>
 
             <div class="form-group">
@@ -92,10 +92,10 @@
           <div id="bkash-panel" style="display: none; margin-bottom: 20px;">
             <p class="form-note" id="bkash-instructions" style="margin-bottom: 14px;"></p>
             <div class="form-group">
-              <label class="form-label" for="txnId">
-                Transaction ID (Tnx ID) <span class="required">*</span>
+              <label class="form-label" for="senderBkashNumber">
+                bKash Number (যে নম্বর থেকে পাঠিয়েছেন) <span class="required">*</span>
               </label>
-              <input type="text" id="txnId" class="form-input" placeholder="Paste bKash Transaction ID">
+              <input type="tel" id="senderBkashNumber" class="form-input" placeholder="01XXXXXXXXX">
             </div>
           </div>
 
@@ -112,8 +112,11 @@
         <!-- Success -->
         <div id="book-success" style="display: none; text-align: center; padding: 20px 0;">
           <div style="font-size: 2.5rem; margin-bottom: 12px;">✅</div>
-          <h2 class="section-title" style="font-size: 1.6rem; margin-bottom: 10px;">Successful</h2>
-          <p id="success-summary" class="hero-subtitle" style="margin-bottom: 24px;"></p>
+          <h2 class="section-title" style="font-size: 1.6rem; margin-bottom: 10px;">You're all set!</h2>
+          <p class="hero-subtitle" style="margin-bottom: 14px; max-width: 420px; margin-left: auto; margin-right: auto;">
+            Thank you for your interest! Our team will reach out soon via WhatsApp or email with your book handover details.
+          </p>
+          <p id="success-summary" class="form-hint" style="margin-bottom: 24px;"></p>
           <a href="/" class="btn btn-primary" style="padding: 12px 24px;">Back to Home</a>
         </div>
 

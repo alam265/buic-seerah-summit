@@ -1,6 +1,6 @@
 // BUIC Quiz Portal - Admin Participant Directory Logic
 
-const COLSPAN = 15;
+const COLSPAN = 14;
 const BOOK_COLSPAN = 11;
 let participantsData = [];
 let bookOrdersData = [];
@@ -124,7 +124,6 @@ function renderTable(data) {
         <td>${escapeHtml(item.gender)}</td>
         <td style="word-break:break-all;">${escapeHtml(item.gsuitEmail)}</td>
         <td style="word-break:break-all;">${escapeHtml(item.personalEmail)}</td>
-        <td>${escapeHtml(item.bkashTxnId)}</td>
         <td style="font-size:0.82rem; max-width:140px; word-break:break-word;">${escapeHtml(item.invitationSource || '—')}</td>
         <td>${escapeHtml(item.uswatunHasanahRead || '—')}</td>
         <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
@@ -434,7 +433,7 @@ function renderBookOrdersTable(data) {
         <td>${item.isParticipant ? 'Yes' : 'No'}</td>
         <td><strong>${item.amountTk} Tk</strong></td>
         <td>${paymentLabel}</td>
-        <td>${escapeHtml(item.txnId || '—')}</td>
+        <td>${escapeHtml(item.senderBkashNumber || '—')}</td>
         <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
         <td style="text-align:center;">
           <button onclick="deleteBookOrderItem(${item.id}, '${escapeHtml(item.fullName)}')" class="btn"
@@ -453,7 +452,7 @@ function filterBookOrders(e) {
       (item.studentId || '').toLowerCase().includes(query) ||
       (item.gsuitEmail || '').toLowerCase().includes(query) ||
       (item.whatsapp || '').toLowerCase().includes(query) ||
-      (item.txnId || '').toLowerCase().includes(query) ||
+      (item.senderBkashNumber || '').toLowerCase().includes(query) ||
       (item.paymentMethod || '').toLowerCase().includes(query);
   });
   renderBookOrdersTable(filtered);
@@ -487,7 +486,7 @@ function exportBookOrdersToCSV() {
 
   const headers = [
     'ID', 'Full Name', 'Student ID', 'Gsuit Email', 'WhatsApp',
-    'Is Participant', 'Amount Tk', 'Payment Method', 'Txn ID', 'Created At'
+    'Is Participant', 'Amount Tk', 'Payment Method', 'bKash Number', 'Created At'
   ];
   const rows = bookOrdersData.map((p) => [
     p.id,
@@ -498,7 +497,7 @@ function exportBookOrdersToCSV() {
     p.isParticipant ? 'Yes' : 'No',
     p.amountTk,
     `"${p.paymentMethod}"`,
-    `"${p.txnId || ''}"`,
+    `"${p.senderBkashNumber || ''}"`,
     `"${p.createdAt}"`
   ]);
 

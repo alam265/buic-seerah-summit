@@ -131,22 +131,22 @@ function updateBkashInstructions() {
   el.innerHTML = `
     bKash Send Money <strong>${formState.amountTk} Tk</strong> to this account
     <strong style="color:var(--accent-gold);">${escapeHtml(number)}</strong>
-    and paste the Transaction ID below.
+    and enter the bKash number you sent from below.
   `;
 }
 
 function onPaymentMethodChange() {
   const method = document.querySelector('input[name="paymentMethod"]:checked')?.value;
   const panel = document.getElementById('bkash-panel');
-  const txnInput = document.getElementById('txnId');
+  const senderInput = document.getElementById('senderBkashNumber');
 
   if (method === 'bkash') {
     panel.style.display = 'block';
-    txnInput.required = true;
+    senderInput.required = true;
   } else {
     panel.style.display = 'none';
-    txnInput.required = false;
-    txnInput.value = '';
+    senderInput.required = false;
+    senderInput.value = '';
   }
 }
 
@@ -160,15 +160,15 @@ async function handleBookSubmit(e) {
   e.preventDefault();
 
   const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
-  const txnId = document.getElementById('txnId').value.trim();
+  const senderBkashNumber = document.getElementById('senderBkashNumber').value.trim();
 
   if (!paymentMethod) {
     showToast('পেমেন্ট মেথড নির্বাচন করুন।', 'error');
     return;
   }
 
-  if (paymentMethod === 'bkash' && !txnId) {
-    showToast('bKash Transaction ID দিন।', 'error');
+  if (paymentMethod === 'bkash' && !senderBkashNumber) {
+    showToast('যে bKash নম্বর থেকে পাঠিয়েছেন সেটি দিন।', 'error');
     return;
   }
 
@@ -188,7 +188,7 @@ async function handleBookSubmit(e) {
         gsuitEmail: formState.gsuitEmail,
         whatsapp: formState.whatsapp,
         paymentMethod,
-        txnId: paymentMethod === 'bkash' ? txnId : ''
+        senderBkashNumber: paymentMethod === 'bkash' ? senderBkashNumber : ''
       })
     });
     const result = await res.json();
@@ -215,13 +215,16 @@ function showSuccess(reg) {
   document.getElementById('book-success').style.display = 'block';
 
   const methodLabel = reg.paymentMethod === 'bkash' ? 'bKash' : 'Cash';
-  const txnLine = reg.txnId ? `<br>Txn ID: <strong>${escapeHtml(reg.txnId)}</strong>` : '';
+  const senderLine = reg.senderBkashNumber
+    ? `<br>bKash From: <strong>${escapeHtml(reg.senderBkashNumber)}</strong>`
+    : '';
 
   document.getElementById('success-summary').innerHTML = `
     <strong>${escapeHtml(reg.fullName)}</strong> (${escapeHtml(reg.studentId)})<br>
-    Amount: <strong>${reg.amountTk} Tk</strong> · Payment: <strong>${methodLabel}</strong>${txnLine}
+    Amount: <strong>${reg.amountTk} Tk</strong> · Payment: <strong>${methodLabel}</strong>${senderLine}
   `;
 }
+
 
 function escapeHtml(str) {
   if (!str) return '';
