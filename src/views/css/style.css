@@ -327,8 +327,8 @@ body {
 
 .hero-kyp {
   margin: 0;
-  width: min(100%, 520px);
-  max-height: min(14vh, 130px);
+  width: min(100%, 440px);
+  max-height: min(11vh, 105px);
   flex-shrink: 0;
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
@@ -985,6 +985,73 @@ body {
   100% { transform: scale(0.9); opacity: 0.7; }
 }
 
+.book-pricing-banner {
+  margin: 0 0 28px;
+  padding: 20px 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(168, 85, 247, 0.1));
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.book-pricing-banner__title {
+  margin: 0 0 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  text-align: center;
+}
+
+.book-pricing-banner__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.book-pricing-banner__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--border-color);
+}
+
+.book-pricing-banner__item--highlight {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.book-pricing-banner__label {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.book-pricing-banner__amount {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+}
+
+.book-pricing-banner__item--highlight .book-pricing-banner__amount {
+  color: var(--accent-gold);
+}
+
+@media (max-width: 640px) {
+  .book-pricing-banner__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .book-pricing-banner__amount {
+    font-size: 1.45rem;
+  }
+}
+
 .hero-title {
   font-size: 2.8rem;
   font-weight: 800;
@@ -1498,6 +1565,23 @@ body {
   outline: none;
   border-color: var(--accent-emerald);
   box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
+}
+
+select.form-select-scrollable {
+  cursor: pointer;
+}
+
+select.form-select-scrollable.is-expanded {
+  overflow-y: auto;
+  max-height: 280px;
+  position: relative;
+  z-index: 20;
+  background: var(--bg-secondary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+select.form-select-scrollable.is-expanded option {
+  padding: 10px 16px;
 }
 
 .form-textarea {

@@ -350,10 +350,18 @@ let emailConfigured = false;
 async function checkEmailStatus() {
   try {
     const response = await fetch('/api/notifications/email/status');
-    if (response.status === 401) return;
+    if (response.status === 401) {
+      emailConfigured = false;
+      return;
+    }
 
     const result = await response.json();
     emailConfigured = Boolean(result.success && result.configured);
+
+    const notifyBtn = document.getElementById('notify-email-btn');
+    if (notifyBtn && !emailConfigured) {
+      notifyBtn.title = 'SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS in .env (local) or Vercel Environment Variables (production).';
+    }
   } catch (err) {
     console.error('Email status check failed:', err);
     emailConfigured = false;
@@ -362,7 +370,7 @@ async function checkEmailStatus() {
 
 function openNotifyModal() {
   if (!emailConfigured) {
-    showToast('SMTP সেটআপ নেই। .env-এ SMTP_HOST, SMTP_USER, SMTP_PASS দিন এবং সার্ভার রিস্টার্ট করুন।', 'error');
+    showToast('SMTP সেটআপ নেই। লোকালে .env-এ বা Vercel Dashboard → Settings → Environment Variables-এ SMTP_HOST, SMTP_USER, SMTP_PASS যোগ করুন।', 'error');
     return;
   }
 

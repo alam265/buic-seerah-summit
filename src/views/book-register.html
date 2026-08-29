@@ -23,41 +23,52 @@
 
       <div class="section-header">
         <div class="badge-tag">📖 Book Registration</div>
-        <h1 class="section-title">উসওয়াতুন হাসানাহ — বই রেজিস্ট্রেশন</h1>
-        <p class="hero-subtitle">
-          কুইজ অংশগ্রহণকারীরা ১৫০ টাকায়, অন্যরা ২২০ টাকায় বইটি নিতে পারবেন।
-        </p>
+        <h1 class="section-title">USWATUN HASANAH — Book Registration</h1>
       </div>
 
       <div class="form-wrapper">
 
         <!-- Step 1 -->
         <form id="book-step1-form">
+          <div class="book-pricing-banner" role="note" aria-label="Book pricing">
+            <p class="book-pricing-banner__title">💰 Book Price</p>
+            <div class="book-pricing-banner__grid">
+              <div class="book-pricing-banner__item book-pricing-banner__item--highlight">
+                <span class="book-pricing-banner__label">For Competition Participants/Registration</span>
+                <span class="book-pricing-banner__amount">৳150</span>
+              </div>
+              <div class="book-pricing-banner__item">
+                <span class="book-pricing-banner__label">Without Competition Registration</span>
+                <span class="book-pricing-banner__amount">৳220</span>
+              </div>
+            </div>
+          </div>
+
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label" for="studentId">
-                স্টুডেন্ট আইডি (STUDENT ID) <span class="required">*</span>
+                Student ID <span class="required">*</span>
               </label>
               <input type="text" id="studentId" class="form-input" placeholder="26301077" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="fullName">
-                পূর্ণ নাম (NAME) <span class="required">*</span>
+                Full Name <span class="required">*</span>
               </label>
               <input type="text" id="fullName" class="form-input" placeholder="Abdullah" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="gsuitEmail">
-                জিসুইট ইমেইল (GSUIT EMAIL) <span class="required">*</span>
+                GSuit Email <span class="required">*</span>
               </label>
               <input type="email" id="gsuitEmail" class="form-input" placeholder="name@g.bracu.ac.bd" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="whatsapp">
-                হোয়াটসঅ্যাপ নম্বর (WHATSAPP) <span class="required">*</span>
+                WhatsApp Number <span class="required">*</span>
               </label>
               <input type="tel" id="whatsapp" class="form-input" placeholder="017XXXXXXXX" required>
             </div>
@@ -75,7 +86,7 @@
 
           <div class="form-group full-width" style="margin-bottom: 20px;">
             <label class="form-label">
-              পেমেন্ট মেথড (Payment Method) <span class="required">*</span>
+              Payment Method <span class="required">*</span>
             </label>
             <div class="radio-group">
               <label class="radio-option">
@@ -93,7 +104,7 @@
             <p class="form-note" id="bkash-instructions" style="margin-bottom: 14px;"></p>
             <div class="form-group">
               <label class="form-label" for="senderBkashNumber">
-                bKash Number (যে নম্বর থেকে পাঠিয়েছেন) <span class="required">*</span>
+                bKash Number (sender) <span class="required">*</span>
               </label>
               <input type="tel" id="senderBkashNumber" class="form-input" placeholder="01XXXXXXXXX">
             </div>

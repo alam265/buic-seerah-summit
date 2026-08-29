@@ -47,68 +47,86 @@
 
             <div class="form-group full-width">
               <label class="form-label" for="fullName">
-                পূর্ণ নাম (NAME) <span class="required">*</span>
+                Full Name <span class="required">*</span>
               </label>
               <input type="text" id="fullName" class="form-input" placeholder="Abdullah" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="studentId">
-                স্টুডেন্ট আইডি (STUDENT ID) <span class="required">*</span>
+                Student ID <span class="required">*</span>
               </label>
               <input type="text" id="studentId" class="form-input" placeholder="26301077" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="semester">
-                সেমিস্টার / ইনটেক ইয়ার (SEMESTER) <span class="required">*</span>
+                Semester / Intake Year <span class="required">*</span>
               </label>
               <input type="text" id="semester" class="form-input" placeholder="Fall 22" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="department">
-                ডিপার্টমেন্ট (DEPARTMENT) <span class="required">*</span>
+                Department <span class="required">*</span>
               </label>
-              <input type="text" id="department" class="form-input" placeholder="CSE/EEE/BBA/LLB/etc" required>
+              <select id="department" class="form-input form-select-scrollable" required>
+                <option value="" disabled selected>Select</option>
+                <option value="Anthropology">Anthropology</option>
+                <option value="English">English</option>
+                <option value="LLB (Bachelor of Laws)">LLB (Bachelor of Laws)</option>
+                <option value="BBA (Bachelor of Business Administration)">BBA (Bachelor of Business Administration)</option>
+                <option value="Economics">Economics</option>
+                <option value="CS (Computer Science)">CS (Computer Science)</option>
+                <option value="CSE (Computer Science and Engineering)">CSE (Computer Science and Engineering)</option>
+                <option value="ECE (Electronic and Communication Engineering)">ECE (Electronic and Communication Engineering)</option>
+                <option value="EEE (Electrical and Electronic Engineering)">EEE (Electrical and Electronic Engineering)</option>
+                <option value="APE (Applied Physics and Electronics)">APE (Applied Physics and Electronics)</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Biotechnology">Biotechnology</option>
+                <option value="Microbiology">Microbiology</option>
+                <option value="Architecture">Architecture</option>
+              </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="whatsapp">
-                হোয়াটসঅ্যাপ নম্বর (WHATSAPP) <span class="required">*</span>
+                WhatsApp Number <span class="required">*</span>
               </label>
               <input type="tel" id="whatsapp" class="form-input" placeholder="017XXXXXXXX" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="gender">
-                লিঙ্গ (GENDER) <span class="required">*</span>
+                Gender <span class="required">*</span>
               </label>
               <select id="gender" class="form-input" required>
-                <option value="" disabled selected>নির্বাচন করুন</option>
-                <option value="Male">Male (পুরুষ)</option>
-                <option value="Female">Female (নারী)</option>
-                <option value="Other">Other (অন্যান্য)</option>
+                <option value="" disabled selected>Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="gsuitEmail">
-                জিসুইট ইমেইল (GSUIT EMAIL) <span class="required">*</span>
+                GSuit Email <span class="required">*</span>
               </label>
               <input type="email" id="gsuitEmail" class="form-input" placeholder="name@buic.edu.bd" required>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="personalEmail">
-                পার্সোনাল ইমেইল (PERSONAL EMAIL) <span class="required">*</span>
+                Personal Email <span class="required">*</span>
               </label>
               <input type="email" id="personalEmail" class="form-input" placeholder="name@gmail.com" required>
             </div>
 
             <div class="form-group full-width">
               <label class="form-label" for="facebookLink">
-                ফেসবুক আইডি লিংক (Facebook ID Link)
+                Facebook ID Link
               </label>
               <input type="url" id="facebookLink" class="form-input" placeholder="https://facebook.com/your.profile">
             </div>
@@ -157,7 +175,7 @@
 
           <button type="submit" id="submit-btn" class="btn btn-primary"
             style="width: 100%; margin-top: 28px; font-size: 1.1rem; padding: 16px;">
-            রেজিস্ট্রেশান সাবমিট করুন
+            Submit Registration
           </button>
         </form>
 

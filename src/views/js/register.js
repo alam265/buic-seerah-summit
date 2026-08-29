@@ -30,7 +30,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const initialCompetition = getInitialCompetition();
   setCompetitionTab(initialCompetition, { updateUrl: false });
+
+  initScrollableSelect(document.getElementById('department'));
 });
+
+function initScrollableSelect(select, maxVisible = 8) {
+  if (!select) return;
+
+  const expand = () => {
+    select.size = Math.min(select.options.length, maxVisible);
+    select.classList.add('is-expanded');
+  };
+
+  const collapse = () => {
+    select.size = 1;
+    select.classList.remove('is-expanded');
+  };
+
+  select.addEventListener('click', expand);
+  select.addEventListener('focus', expand);
+  select.addEventListener('blur', collapse);
+  select.addEventListener('change', collapse);
+}
 
 function getInitialCompetition() {
   const params = new URLSearchParams(window.location.search);

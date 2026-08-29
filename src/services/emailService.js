@@ -39,10 +39,19 @@ function createTransporter() {
   });
 }
 
+function isValidEmail(value) {
+  if (!value) return false;
+  const trimmed = String(value).trim();
+  if (!trimmed || trimmed.toUpperCase() === 'N/A') return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
 function getParticipantEmail(participant) {
   const personal = (participant.personalEmail || '').trim();
   const gsuit = (participant.gsuitEmail || '').trim();
-  return personal || gsuit || null;
+  if (isValidEmail(personal)) return personal;
+  if (isValidEmail(gsuit)) return gsuit;
+  return null;
 }
 
 function personalizeTemplate(template, participant) {
