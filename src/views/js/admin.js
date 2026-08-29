@@ -1,6 +1,11 @@
 // BUIC Quiz Portal - Admin Participant Directory Logic
 
-const COLSPAN = 14;
+const COLSPAN = 15;
+
+const COMPETITION_LABELS = {
+  quiz: 'Quiz',
+  seerah: 'Open Book'
+};
 const BOOK_COLSPAN = 11;
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_BASE_MS = 2000;
@@ -39,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
     searchInput.addEventListener('input', filterParticipants);
+  }
+
+  const competitionFilter = document.getElementById('competition-filter');
+  if (competitionFilter) {
+    competitionFilter.addEventListener('change', filterParticipants);
   }
 
   const bookSearchInput = document.getElementById('book-search-input');
@@ -151,6 +161,7 @@ function renderTable(data) {
       <tr>
         <td style="font-weight:700;">${index + 1}</td>
         <td><span class="ticket-id" style="font-size:0.82rem; padding:4px 8px;">${item.ticketId}</span></td>
+        <td><span style="font-size:0.82rem; font-weight:600; color:var(--accent-gold);">${COMPETITION_LABELS[item.competition] || escapeHtml(item.competition || '—')}</span></td>
         <td style="font-weight:600; color:var(--text-heading);">${escapeHtml(item.fullName)}</td>
         <td>${escapeHtml(item.studentId)}</td>
         <td>${escapeHtml(item.semester)}</td>
@@ -159,7 +170,11 @@ function renderTable(data) {
         <td>${escapeHtml(item.gender)}</td>
         <td style="word-break:break-all;">${escapeHtml(item.gsuitEmail)}</td>
         <td style="word-break:break-all;">${escapeHtml(item.personalEmail)}</td>
-        <td style="font-size:0.82rem; max-width:140px; word-break:break-word;">${escapeHtml(item.invitationSource || '—')}</td>
+        <td style="font-size:0.82rem; max-width:120px; word-break:break-all;">
+          ${item.facebookLink
+            ? `<a href="${escapeHtml(item.facebookLink)}" target="_blank" rel="noopener" style="color:var(--accent-gold);">Profile</a>`
+            : '—'}
+        </td>
         <td>${escapeHtml(item.uswatunHasanahRead || '—')}</td>
         <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
         <td style="text-align:center;">
@@ -178,6 +193,7 @@ function openEditModal(id) {
   if (!participant) return;
 
   document.getElementById('edit-id').value = participant.id;
+  document.getElementById('edit-competition').value = participant.competition || 'quiz';
   document.getElementById('edit-name').value = participant.fullName || '';
   document.getElementById('edit-studentId').value = participant.studentId || '';
   document.getElementById('edit-semester').value = participant.semester || '';
@@ -188,10 +204,6 @@ function openEditModal(id) {
   document.getElementById('edit-gsuitEmail').value = participant.gsuitEmail || '';
   document.getElementById('edit-personalEmail').value = participant.personalEmail || '';
   document.getElementById('edit-bkashTxnId').value = participant.bkashTxnId || '';
-  document.getElementById('edit-seerahReadBefore').value = participant.seerahReadBefore || '';
-  document.getElementById('edit-engagementSuggestions').value = participant.engagementSuggestions || '';
-  document.getElementById('edit-programmeExpectation').value = participant.programmeExpectation || '';
-  document.getElementById('edit-invitationSource').value = participant.invitationSource || '';
   document.getElementById('edit-uswatunHasanahRead').value = participant.uswatunHasanahRead || '';
   document.getElementById('edit-uswatunHasanahParticipation').value = participant.uswatunHasanahParticipation || '';
 
@@ -206,6 +218,7 @@ async function handleEditSubmit(e) {
   e.preventDefault();
   const id = document.getElementById('edit-id').value;
   const payload = {
+    competition: document.getElementById('edit-competition').value,
     fullName: document.getElementById('edit-name').value.trim(),
     studentId: document.getElementById('edit-studentId').value.trim(),
     semester: document.getElementById('edit-semester').value.trim(),
@@ -216,10 +229,6 @@ async function handleEditSubmit(e) {
     gsuitEmail: document.getElementById('edit-gsuitEmail').value.trim(),
     personalEmail: document.getElementById('edit-personalEmail').value.trim(),
     bkashTxnId: document.getElementById('edit-bkashTxnId').value.trim(),
-    seerahReadBefore: document.getElementById('edit-seerahReadBefore').value.trim(),
-    engagementSuggestions: document.getElementById('edit-engagementSuggestions').value.trim(),
-    programmeExpectation: document.getElementById('edit-programmeExpectation').value.trim(),
-    invitationSource: document.getElementById('edit-invitationSource').value,
     uswatunHasanahRead: document.getElementById('edit-uswatunHasanahRead').value,
     uswatunHasanahParticipation: document.getElementById('edit-uswatunHasanahParticipation').value
   };
@@ -266,9 +275,18 @@ async function deleteParticipantItem(id, name) {
   }
 }
 
-function filterParticipants(e) {
-  const query = e.target.value.toLowerCase().trim();
+function filterParticipants() {
+  const searchInput = document.getElementById('search-input');
+  const competitionFilter = document.getElementById('competition-filter');
+  const query = (searchInput?.value || '').toLowerCase().trim();
+  const competition = competitionFilter?.value || '';
+
   const filtered = participantsData.filter(item => {
+    const matchesCompetition = !competition || item.competition === competition;
+    if (!matchesCompetition) return false;
+
+    if (!query) return true;
+
     return item.fullName.toLowerCase().includes(query) ||
            item.ticketId.toLowerCase().includes(query) ||
            item.studentId.toLowerCase().includes(query) ||
@@ -277,8 +295,7 @@ function filterParticipants(e) {
            item.gsuitEmail.toLowerCase().includes(query) ||
            item.personalEmail.toLowerCase().includes(query) ||
            item.bkashTxnId.toLowerCase().includes(query) ||
-           (item.invitationSource || '').toLowerCase().includes(query) ||
-           (item.seerahReadBefore || '').toLowerCase().includes(query);
+           (item.facebookLink || '').toLowerCase().includes(query);
   });
   renderTable(filtered);
 }
@@ -290,15 +307,15 @@ function exportToCSV() {
   }
 
   const headers = [
-    'ID', 'Ticket ID', 'Full Name', 'Student ID', 'Semester', 'Department', 'WhatsApp', 'Gender',
+    'ID', 'Ticket ID', 'Competition', 'Full Name', 'Student ID', 'Semester', 'Department', 'WhatsApp', 'Gender',
     'Gsuit Email', 'Personal Email', 'Facebook Link', 'Bkash Txn ID',
-    'Seerah Read Before', 'Engagement Suggestions', 'Programme Expectation',
-    'Invitation Source', 'Uswatun Hasanah Read', 'Uswatun Hasanah Participation',
+    'Uswatun Hasanah Read', 'Uswatun Hasanah Participation',
     'Created At'
   ];
   const rows = participantsData.map(p => [
     p.id,
     `"${p.ticketId}"`,
+    `"${p.competition || 'quiz'}"`,
     `"${p.fullName}"`,
     `"${p.studentId}"`,
     `"${p.semester}"`,
@@ -309,10 +326,6 @@ function exportToCSV() {
     `"${p.personalEmail}"`,
     `"${p.facebookLink || ''}"`,
     `"${p.bkashTxnId}"`,
-    `"${(p.seerahReadBefore || '').replace(/"/g, '""')}"`,
-    `"${(p.engagementSuggestions || '').replace(/"/g, '""')}"`,
-    `"${(p.programmeExpectation || '').replace(/"/g, '""')}"`,
-    `"${p.invitationSource || ''}"`,
     `"${p.uswatunHasanahRead || ''}"`,
     `"${p.uswatunHasanahParticipation || ''}"`,
     `"${p.createdAt}"`

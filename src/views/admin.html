@@ -66,11 +66,16 @@
         </div>
       </div>
 
-      <!-- Search Bar -->
-      <div style="margin-bottom: 24px;">
+      <!-- Search & Filter Bar -->
+      <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap;">
         <input type="text" id="search-input" class="form-input"
           placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন..."
-          style="padding: 14px 20px; font-size: 1rem;">
+          style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
+        <select id="competition-filter" class="form-input" style="padding: 14px 20px; font-size: 1rem; min-width:200px;">
+          <option value="">All Competitions</option>
+          <option value="quiz">Quiz</option>
+          <option value="seerah">Open Book (Seerah)</option>
+        </select>
       </div>
 
       <!-- Participants Data Table -->
@@ -80,6 +85,7 @@
             <tr>
               <th>#</th>
               <th>টিকিট আইডি</th>
+              <th>Competition</th>
               <th>নাম</th>
               <th>স্টুডেন্ট আইডি</th>
               <th>সেমিস্টার</th>
@@ -88,7 +94,7 @@
               <th>লিঙ্গ</th>
               <th>জিসুইট ইমেইল</th>
               <th>পার্সোনাল ইমেইল</th>
-              <th>Invitation Source</th>
+              <th>ফেসবুক লিংক</th>
               <th>Uswatun Read</th>
               <th>তারিখ</th>
               <th style="text-align:center;">অ্যাকশন (Manage)</th>
@@ -114,6 +120,13 @@
           </div>
            <form id="edit-form" style="display:flex; flex-direction:column; gap:12px;">
             <input type="hidden" id="edit-id">
+            <div>
+              <label style="font-size:0.85rem; color:var(--text-muted);">Competition *</label>
+              <select id="edit-competition" class="form-input" required>
+                <option value="quiz">Quiz</option>
+                <option value="seerah">Open Book (Seerah)</option>
+              </select>
+            </div>
             <div>
               <label style="font-size:0.85rem; color:var(--text-muted);">পূর্ণ নাম *</label>
               <input type="text" id="edit-name" class="form-input" required>
@@ -167,32 +180,6 @@
               <input type="text" id="edit-bkashTxnId" class="form-input" required>
             </div>
 
-            <div style="margin-top:8px; padding-top:12px; border-top:1px solid var(--border-color);">
-              <p style="font-size:0.9rem; color:var(--accent-gold); margin:0 0 10px; font-weight:600;">Survey Responses</p>
-            </div>
-            <div>
-              <label style="font-size:0.85rem; color:var(--text-muted);">Seerah read before</label>
-              <input type="text" id="edit-seerahReadBefore" class="form-input">
-            </div>
-            <div>
-              <label style="font-size:0.85rem; color:var(--text-muted);">Engagement suggestions</label>
-              <textarea id="edit-engagementSuggestions" class="form-textarea" rows="2"></textarea>
-            </div>
-            <div>
-              <label style="font-size:0.85rem; color:var(--text-muted);">Programme expectation</label>
-              <textarea id="edit-programmeExpectation" class="form-textarea" rows="2"></textarea>
-            </div>
-            <div>
-              <label style="font-size:0.85rem; color:var(--text-muted);">Invitation source</label>
-              <select id="edit-invitationSource" class="form-input">
-                <option value="">— Select —</option>
-                <option value="Deeni Halaqa BRACUians (Messenger GC)">Deeni Halaqa BRACUians (Messenger GC)</option>
-                <option value="Student community/Faculty Review group">Student community/Faculty Review group</option>
-                <option value="Through Friends">Through Friends</option>
-                <option value="BRACUian Islamic Community page">BRACUian Islamic Community page</option>
-                <option value="Deeni Halaqa BRACUians Sisters (Messenger GC)">Deeni Halaqa BRACUians Sisters (Messenger GC)</option>
-              </select>
-            </div>
             <div class="modal-grid-2" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div>
                 <label style="font-size:0.85rem; color:var(--text-muted);">Uswatun Hasanah read</label>

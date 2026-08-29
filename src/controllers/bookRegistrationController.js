@@ -47,7 +47,7 @@ async function handleBookLookup(req, res) {
 
     const pricing = await lookupParticipantPricing(studentId);
     const message = pricing.isParticipant
-      ? 'Congratulations! You got a discount as you are a participant of the Quiz.'
+      ? 'Congratulations! You got a discount as you are a registered Quiz or Open Book participant.'
       : 'Regular book price applies.';
 
     return res.json({

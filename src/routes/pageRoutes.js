@@ -29,6 +29,7 @@ router.get('/', (req, res) => renderPage(res, 'index.html'));
 router.get('/about', (req, res) => renderPage(res, 'about.html'));
 router.get('/contact', (req, res) => renderPage(res, 'contact-us.html'));
 router.get('/register', (req, res) => renderPage(res, 'register.html'));
+router.get('/register/seerah', (req, res) => res.redirect('/register?competition=seerah'));
 router.get('/book-register', (req, res) => renderPage(res, 'book-register.html'));
 router.get('/events/quiz', (req, res) => renderPage(res, 'events-quiz.html'));
 router.get('/events/open-book', (req, res) => renderPage(res, 'events-open-book.html'));

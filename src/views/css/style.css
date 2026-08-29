@@ -262,12 +262,13 @@ body {
 /* ===================== HOME HERO (SUMMIT) ===================== */
 .hero-summit {
   position: relative;
-  min-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
+  height: calc(100dvh - var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 0 64px;
+  padding: clamp(16px, 2.5vh, 32px) 0;
   overflow: hidden;
   background-color: #0a1628;
   background-image: url('/images/background.jpg');
@@ -280,13 +281,23 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vh, 20px);
   max-width: 900px;
+  max-height: 100%;
+  width: 100%;
 }
 
 .hero-summit-logo-wrap {
   position: relative;
-  width: min(100%, 640px);
-  margin-bottom: 28px;
+  width: min(100%, 520px);
+  max-height: min(36vh, 320px);
+  margin-bottom: clamp(12px, 2.5vh, 28px);
+  flex-shrink: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -305,36 +316,46 @@ body {
   position: relative;
   z-index: 1;
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
   height: auto;
+  object-fit: contain;
   mix-blend-mode: screen;
   filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.45));
 }
 
 .hero-kyp {
-  margin: 0 0 20px;
+  margin: 0;
   width: min(100%, 520px);
+  max-height: min(14vh, 130px);
+  flex-shrink: 0;
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .hero-kyp-img {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
   height: auto;
+  margin: 0 auto;
+  object-fit: contain;
   border-radius: 8px;
 }
 
 .hero-summit-subtitle {
-  font-size: 1.2rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.2rem);
   color: var(--text-muted);
   max-width: 560px;
-  margin: 0 auto 36px;
-  line-height: 1.7;
+  margin: 0 auto;
+  line-height: 1.6;
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
 }
 
 .hero-summit-cta {
   margin-bottom: 0;
+  flex-shrink: 0;
   animation: heroRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
 }
 
@@ -586,6 +607,13 @@ body {
   align-self: flex-start;
   font-size: 0.9rem;
   padding: 10px 18px;
+}
+
+.event-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
 }
 
 /* Event detail pages */
@@ -990,6 +1018,10 @@ body {
   margin-bottom: 48px;
 }
 
+.hero-summit-cta.hero-cta-group {
+  margin-bottom: 0;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -1221,6 +1253,59 @@ body {
   border-radius: var(--radius-lg);
   padding: 40px;
   box-shadow: var(--shadow-lg);
+}
+
+.registration-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.registration-tab {
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-md) - 4px);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.registration-tab:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.registration-tab.active {
+  color: var(--text-heading);
+  background: rgba(139, 92, 246, 0.18);
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.15);
+}
+
+.quiz-only-fields {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quiz-only-fields.is-hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .registration-tab {
+    font-size: 0.82rem;
+    padding: 10px 12px;
+  }
 }
 
 .db-status-banner {
@@ -2166,19 +2251,34 @@ body {
     gap: 12px;
   }
   .hero-summit {
-    min-height: auto;
+    height: auto;
+    min-height: 0;
     padding: 36px 0 48px;
+  }
+  .hero-summit-inner {
+    max-height: none;
+    gap: 18px;
   }
   .hero-summit-logo-wrap {
     width: min(100%, 480px);
-    margin-bottom: 22px;
+    max-height: none;
+    margin-bottom: 0;
+  }
+  .hero-summit-logo {
+    width: 100%;
+    max-height: none;
   }
   .hero-kyp {
     width: min(100%, 420px);
+    max-height: none;
+  }
+  .hero-kyp-img {
+    width: 100%;
+    max-height: none;
   }
   .hero-summit-subtitle {
     font-size: 1.05rem;
-    margin-bottom: 28px;
+    margin-bottom: 0;
   }
   .about-summit-section {
     padding: 52px 0 28px;
@@ -2428,14 +2528,19 @@ body {
     align-items: stretch;
   }
   .hero-summit {
+    height: auto;
     padding: 28px 0 40px;
   }
+  .hero-summit-inner {
+    gap: 14px;
+  }
   .hero-summit-logo-wrap {
-    margin-bottom: 18px;
+    margin-bottom: 0;
+    max-height: none;
   }
   .hero-summit-subtitle {
     font-size: 0.95rem;
-    margin-bottom: 24px;
+    margin-bottom: 0;
   }
   .about-summit-section {
     padding: 40px 0 48px;

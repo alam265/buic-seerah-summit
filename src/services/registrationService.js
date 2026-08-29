@@ -1,5 +1,6 @@
 const { getDbContext, requireNeonOrLocalDev } = require('../config/db');
 
+const COMPETITION_TYPES = ['quiz', 'seerah'];
 const localRegistrations = [];
 
 function generateTicketId() {
@@ -12,6 +13,7 @@ function mapRegistrationRow(row) {
   return {
     id: row.id,
     ticketId: row.ticket_id,
+    competition: row.competition,
     fullName: row.full_name,
     studentId: row.student_id,
     semester: row.semester,
@@ -22,17 +24,20 @@ function mapRegistrationRow(row) {
     personalEmail: row.personal_email,
     gender: row.gender,
     bkashTxnId: row.bkash_txn_id,
-    seerahReadBefore: row.seerah_read_before,
-    engagementSuggestions: row.engagement_suggestions,
-    programmeExpectation: row.programme_expectation,
-    invitationSource: row.invitation_source,
     uswatunHasanahRead: row.uswatun_hasanah_read,
     uswatunHasanahParticipation: row.uswatun_hasanah_participation,
     createdAt: row.created_at
   };
 }
 
+function createDuplicateRegistrationError() {
+  const err = new Error('DUPLICATE_REGISTRATION');
+  err.code = 'DUPLICATE_REGISTRATION';
+  return err;
+}
+
 async function registerParticipant({
+  competition,
   fullName,
   studentId,
   semester,
@@ -43,15 +48,12 @@ async function registerParticipant({
   personalEmail,
   gender,
   bkashTxnId,
-  seerahReadBefore,
-  engagementSuggestions,
-  programmeExpectation,
-  invitationSource,
   uswatunHasanahRead,
   uswatunHasanahParticipation
 }) {
-  const { isNeonConnected, pool, dbError } = await getDbContext();
+  const { isNeonConnected, pool } = await getDbContext();
   const ticketId = generateTicketId();
+  const cleanCompetition = competition || 'quiz';
   const cleanStudentId = studentId || '';
   const cleanSemester = semester || '';
   const cleanDepartment = department || 'N/A';
@@ -61,10 +63,6 @@ async function registerParticipant({
   const cleanPersonalEmail = personalEmail || '';
   const cleanGender = gender || '';
   const cleanBkashTxnId = bkashTxnId || '';
-  const cleanSeerahReadBefore = seerahReadBefore || null;
-  const cleanEngagementSuggestions = engagementSuggestions || null;
-  const cleanProgrammeExpectation = programmeExpectation || null;
-  const cleanInvitationSource = invitationSource || null;
   const cleanUswatunHasanahRead = uswatunHasanahRead || null;
   const cleanUswatunHasanahParticipation = uswatunHasanahParticipation || null;
 
@@ -73,33 +71,55 @@ async function registerParticipant({
   }
 
   if (isNeonConnected && pool) {
+    const existing = await pool.query(
+      'SELECT 1 FROM registrations WHERE student_id = $1 AND competition = $2 LIMIT 1',
+      [cleanStudentId, cleanCompetition]
+    );
+    if (existing.rows.length > 0) {
+      throw createDuplicateRegistrationError();
+    }
+
     const insertQuery = `
       INSERT INTO registrations (
-        ticket_id, full_name, student_id, semester, department, whatsapp, facebook_link,
+        ticket_id, competition, full_name, student_id, semester, department, whatsapp, facebook_link,
         gsuit_email, personal_email, gender, bkash_txn_id,
-        seerah_read_before, engagement_suggestions, programme_expectation,
-        invitation_source, uswatun_hasanah_read, uswatun_hasanah_participation
+        uswatun_hasanah_read, uswatun_hasanah_participation
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *;
     `;
     const values = [
-      ticketId, fullName, cleanStudentId, cleanSemester, cleanDepartment, cleanWhatsapp,
+      ticketId, cleanCompetition, fullName, cleanStudentId, cleanSemester, cleanDepartment, cleanWhatsapp,
       cleanFacebookLink, cleanGsuitEmail, cleanPersonalEmail, cleanGender, cleanBkashTxnId,
-      cleanSeerahReadBefore, cleanEngagementSuggestions, cleanProgrammeExpectation,
-      cleanInvitationSource, cleanUswatunHasanahRead, cleanUswatunHasanahParticipation
+      cleanUswatunHasanahRead, cleanUswatunHasanahParticipation
     ];
-    const result = await pool.query(insertQuery, values);
 
-    return {
-      registration: mapRegistrationRow(result.rows[0]),
-      storageType: 'Neon PostgreSQL'
-    };
+    try {
+      const result = await pool.query(insertQuery, values);
+      return {
+        registration: mapRegistrationRow(result.rows[0]),
+        storageType: 'Neon PostgreSQL'
+      };
+    } catch (err) {
+      if (err.code === '23505') {
+        throw createDuplicateRegistrationError();
+      }
+      throw err;
+    }
+  }
+
+  const duplicate = localRegistrations.some(
+    (r) => String(r.studentId).toLowerCase() === cleanStudentId.toLowerCase()
+      && r.competition === cleanCompetition
+  );
+  if (duplicate) {
+    throw createDuplicateRegistrationError();
   }
 
   const newReg = {
     id: localRegistrations.length + 1,
     ticketId,
+    competition: cleanCompetition,
     fullName,
     studentId: cleanStudentId,
     semester: cleanSemester,
@@ -110,10 +130,6 @@ async function registerParticipant({
     personalEmail: cleanPersonalEmail,
     gender: cleanGender,
     bkashTxnId: cleanBkashTxnId,
-    seerahReadBefore: cleanSeerahReadBefore,
-    engagementSuggestions: cleanEngagementSuggestions,
-    programmeExpectation: cleanProgrammeExpectation,
-    invitationSource: cleanInvitationSource,
     uswatunHasanahRead: cleanUswatunHasanahRead,
     uswatunHasanahParticipation: cleanUswatunHasanahParticipation,
     createdAt: new Date().toISOString()
@@ -127,7 +143,7 @@ async function registerParticipant({
 }
 
 async function getAllParticipants() {
-  const { isNeonConnected, pool, dbError } = await getDbContext();
+  const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query('SELECT * FROM registrations ORDER BY id DESC');
@@ -148,7 +164,7 @@ async function getAllParticipants() {
   };
 }
 
-async function isQuizParticipant(studentId) {
+async function isCompetitionParticipant(studentId) {
   const cleanId = String(studentId || '').trim();
   if (!cleanId) return false;
 
@@ -156,7 +172,7 @@ async function isQuizParticipant(studentId) {
 
   if (isNeonConnected && pool) {
     const result = await pool.query(
-      'SELECT 1 FROM registrations WHERE student_id = $1 LIMIT 1',
+      "SELECT 1 FROM registrations WHERE student_id = $1 AND competition IN ('quiz', 'seerah') LIMIT 1",
       [cleanId]
     );
     return result.rows.length > 0;
@@ -164,6 +180,7 @@ async function isQuizParticipant(studentId) {
 
   return localRegistrations.some(
     (r) => String(r.studentId).toLowerCase() === cleanId.toLowerCase()
+      && (r.competition === 'quiz' || r.competition === 'seerah')
   );
 }
 
@@ -184,6 +201,7 @@ async function getRegistrationsCount() {
 }
 
 async function updateParticipant(id, {
+  competition,
   fullName,
   studentId,
   semester,
@@ -194,10 +212,6 @@ async function updateParticipant(id, {
   personalEmail,
   gender,
   bkashTxnId,
-  seerahReadBefore,
-  engagementSuggestions,
-  programmeExpectation,
-  invitationSource,
   uswatunHasanahRead,
   uswatunHasanahParticipation
 }) {
@@ -206,14 +220,14 @@ async function updateParticipant(id, {
   if (isNeonConnected && pool) {
     const updateQuery = `
       UPDATE registrations
-      SET full_name = $1, student_id = $2, semester = $3, department = $4, whatsapp = $5,
-          facebook_link = $6, gsuit_email = $7, personal_email = $8, gender = $9, bkash_txn_id = $10,
-          seerah_read_before = $11, engagement_suggestions = $12, programme_expectation = $13,
-          invitation_source = $14, uswatun_hasanah_read = $15, uswatun_hasanah_participation = $16
-      WHERE id = $17
+      SET competition = $1, full_name = $2, student_id = $3, semester = $4, department = $5, whatsapp = $6,
+          facebook_link = $7, gsuit_email = $8, personal_email = $9, gender = $10, bkash_txn_id = $11,
+          uswatun_hasanah_read = $12, uswatun_hasanah_participation = $13
+      WHERE id = $14
       RETURNING *;
     `;
     const values = [
+      competition || 'quiz',
       fullName,
       studentId || '',
       semester || '',
@@ -224,10 +238,6 @@ async function updateParticipant(id, {
       personalEmail || '',
       gender || '',
       bkashTxnId || '',
-      seerahReadBefore || null,
-      engagementSuggestions || null,
-      programmeExpectation || null,
-      invitationSource || null,
       uswatunHasanahRead || null,
       uswatunHasanahParticipation || null,
       id
@@ -241,6 +251,7 @@ async function updateParticipant(id, {
   if (idx === -1) return null;
   localRegistrations[idx] = {
     ...localRegistrations[idx],
+    competition: competition || 'quiz',
     fullName,
     studentId: studentId || '',
     semester: semester || '',
@@ -251,10 +262,6 @@ async function updateParticipant(id, {
     personalEmail: personalEmail || '',
     gender: gender || '',
     bkashTxnId: bkashTxnId || '',
-    seerahReadBefore: seerahReadBefore || null,
-    engagementSuggestions: engagementSuggestions || null,
-    programmeExpectation: programmeExpectation || null,
-    invitationSource: invitationSource || null,
     uswatunHasanahRead: uswatunHasanahRead || null,
     uswatunHasanahParticipation: uswatunHasanahParticipation || null
   };
@@ -277,10 +284,11 @@ async function deleteParticipant(id) {
 }
 
 module.exports = {
+  COMPETITION_TYPES,
   registerParticipant,
   getAllParticipants,
   getRegistrationsCount,
-  isQuizParticipant,
+  isCompetitionParticipant,
   updateParticipant,
   deleteParticipant
 };

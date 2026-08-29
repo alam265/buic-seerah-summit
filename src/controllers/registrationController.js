@@ -1,28 +1,21 @@
-const { registerParticipant, getAllParticipants, updateParticipant, deleteParticipant } = require('../services/registrationService');
-
-const INVITATION_SOURCES = [
-  'Deeni Halaqa BRACUians (Messenger GC)',
-  'Student community/Faculty Review group',
-  'Through Friends',
-  'BRACUian Islamic Community page',
-  'Deeni Halaqa BRACUians Sisters (Messenger GC)'
-];
+const {
+  registerParticipant,
+  getAllParticipants,
+  updateParticipant,
+  deleteParticipant,
+  COMPETITION_TYPES
+} = require('../services/registrationService');
 
 const USWATUN_PARTICIPATION_OPTIONS = [
   'Yes, I want to purchase Uswatun Hasanah, and participate',
   'I have this already and want to participate without purchasing it'
 ];
 
-function validateSurveyFields(body) {
+function validateUswatunFields(body) {
   const {
-    invitationSource,
     uswatunHasanahRead,
     uswatunHasanahParticipation
   } = body;
-
-  if (!invitationSource || !INVITATION_SOURCES.includes(invitationSource)) {
-    return 'অনুগ্রহ করে আমন্ত্রণের উৎস নির্বাচন করুন।';
-  }
 
   if (!uswatunHasanahRead || !['Yes', 'No'].includes(uswatunHasanahRead)) {
     return 'অনুগ্রহ করে Uswatun Hasanah পড়েছেন কিনা (Yes/No) নির্বাচন করুন।';
@@ -38,6 +31,7 @@ function validateSurveyFields(body) {
 async function handleRegister(req, res) {
   try {
     const {
+      competition,
       fullName,
       studentId,
       semester,
@@ -48,13 +42,17 @@ async function handleRegister(req, res) {
       personalEmail,
       gender,
       bkashTxnId,
-      seerahReadBefore,
-      engagementSuggestions,
-      programmeExpectation,
-      invitationSource,
       uswatunHasanahRead,
       uswatunHasanahParticipation
     } = req.body;
+
+    const cleanCompetition = competition || 'quiz';
+    if (!COMPETITION_TYPES.includes(cleanCompetition)) {
+      return res.status(400).json({
+        success: false,
+        message: 'অবৈধ প্রতিযোগিতার ধরন নির্বাচন করা হয়েছে।'
+      });
+    }
 
     if (!fullName || !studentId || !department || !whatsapp || !gsuitEmail || !personalEmail || !gender) {
       return res.status(400).json({
@@ -63,12 +61,15 @@ async function handleRegister(req, res) {
       });
     }
 
-    const surveyError = validateSurveyFields(req.body);
-    if (surveyError) {
-      return res.status(400).json({ success: false, message: surveyError });
+    if (cleanCompetition === 'quiz') {
+      const uswatunError = validateUswatunFields(req.body);
+      if (uswatunError) {
+        return res.status(400).json({ success: false, message: uswatunError });
+      }
     }
 
     const { registration, storageType } = await registerParticipant({
+      competition: cleanCompetition,
       fullName,
       studentId,
       semester,
@@ -79,12 +80,8 @@ async function handleRegister(req, res) {
       personalEmail,
       gender,
       bkashTxnId,
-      seerahReadBefore,
-      engagementSuggestions,
-      programmeExpectation,
-      invitationSource,
-      uswatunHasanahRead,
-      uswatunHasanahParticipation
+      uswatunHasanahRead: cleanCompetition === 'quiz' ? uswatunHasanahRead : null,
+      uswatunHasanahParticipation: cleanCompetition === 'quiz' ? uswatunHasanahParticipation : null
     });
 
     const isNeon = storageType.includes('Neon');
@@ -99,6 +96,12 @@ async function handleRegister(req, res) {
     });
   } catch (err) {
     console.error('Registration Controller Error:', err);
+    if (err.code === 'DUPLICATE_REGISTRATION') {
+      return res.status(409).json({
+        success: false,
+        message: 'এই স্টুডেন্ট আইডি দিয়ে ইতিমধ্যে এই প্রতিযোগিতায় রেজিস্ট্রেশন করা হয়েছে।'
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'রেজিস্ট্রেশান প্রক্রিয়াজাতকণে সমস্যা হয়েছে: ' + err.message
@@ -136,6 +139,7 @@ async function handleUpdateParticipant(req, res) {
   try {
     const { id } = req.params;
     const {
+      competition,
       fullName,
       studentId,
       semester,
@@ -146,15 +150,20 @@ async function handleUpdateParticipant(req, res) {
       personalEmail,
       gender,
       bkashTxnId,
-      seerahReadBefore,
-      engagementSuggestions,
-      programmeExpectation,
-      invitationSource,
       uswatunHasanahRead,
       uswatunHasanahParticipation
     } = req.body;
 
+    const cleanCompetition = competition || 'quiz';
+    if (!COMPETITION_TYPES.includes(cleanCompetition)) {
+      return res.status(400).json({
+        success: false,
+        message: 'অবৈধ প্রতিযোগিতার ধরন নির্বাচন করা হয়েছে।'
+      });
+    }
+
     const updated = await updateParticipant(id, {
+      competition: cleanCompetition,
       fullName,
       studentId,
       semester,
@@ -165,10 +174,6 @@ async function handleUpdateParticipant(req, res) {
       personalEmail,
       gender,
       bkashTxnId,
-      seerahReadBefore,
-      engagementSuggestions,
-      programmeExpectation,
-      invitationSource,
       uswatunHasanahRead,
       uswatunHasanahParticipation
     });

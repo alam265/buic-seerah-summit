@@ -1,5 +1,5 @@
 const { getDbContext, requireNeonOrLocalDev } = require('../config/db');
-const { isQuizParticipant } = require('./registrationService');
+const { isCompetitionParticipant } = require('./registrationService');
 
 const PARTICIPANT_PRICE = 150;
 const REGULAR_PRICE = 220;
@@ -27,7 +27,7 @@ function resolveAmount(isParticipant) {
 }
 
 async function lookupParticipantPricing(studentId) {
-  const isParticipant = await isQuizParticipant(studentId);
+  const isParticipant = await isCompetitionParticipant(studentId);
   return {
     isParticipant,
     amountTk: resolveAmount(isParticipant),
@@ -78,7 +78,7 @@ async function createBookRegistration({
     throw err;
   }
 
-  const isParticipant = await isQuizParticipant(cleanStudentId);
+  const isParticipant = await isCompetitionParticipant(cleanStudentId);
   const amountTk = resolveAmount(isParticipant);
 
   const { isNeonConnected, pool, dbError } = await getDbContext();

@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS registrations (
     id SERIAL PRIMARY KEY,
     ticket_id VARCHAR(30) UNIQUE NOT NULL,
+    competition VARCHAR(20) NOT NULL DEFAULT 'quiz',
     full_name VARCHAR(100) NOT NULL,
     student_id VARCHAR(50) NOT NULL,
     semester VARCHAR(20) NOT NULL,
@@ -14,10 +15,6 @@ CREATE TABLE IF NOT EXISTS registrations (
     personal_email VARCHAR(100) NOT NULL,
     gender VARCHAR(20) NOT NULL,
     bkash_txn_id VARCHAR(50) NOT NULL,
-    seerah_read_before TEXT,
-    engagement_suggestions TEXT,
-    programme_expectation TEXT,
-    invitation_source VARCHAR(150),
     uswatun_hasanah_read VARCHAR(10),
     uswatun_hasanah_participation VARCHAR(200),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -29,6 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_whatsapp ON registrations(whatsapp)
 CREATE INDEX IF NOT EXISTS idx_registrations_gsuit_email ON registrations(gsuit_email);
 CREATE INDEX IF NOT EXISTS idx_registrations_personal_email ON registrations(personal_email);
 CREATE INDEX IF NOT EXISTS idx_registrations_ticket_id ON registrations(ticket_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_registrations_student_competition ON registrations(student_id, competition);
 
 -- Admin Users Table
 CREATE TABLE IF NOT EXISTS admins (
@@ -70,15 +68,16 @@ ALTER TABLE registrations ADD COLUMN IF NOT EXISTS gsuit_email VARCHAR(100) NOT 
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS personal_email VARCHAR(100) NOT NULL DEFAULT 'N/A';
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS gender VARCHAR(20) NOT NULL DEFAULT 'Other';
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS bkash_txn_id VARCHAR(50) NOT NULL DEFAULT 'N/A';
-ALTER TABLE registrations ADD COLUMN IF NOT EXISTS seerah_read_before TEXT;
-ALTER TABLE registrations ADD COLUMN IF NOT EXISTS engagement_suggestions TEXT;
-ALTER TABLE registrations ADD COLUMN IF NOT EXISTS programme_expectation TEXT;
-ALTER TABLE registrations ADD COLUMN IF NOT EXISTS invitation_source VARCHAR(150);
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS uswatun_hasanah_read VARCHAR(10);
 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS uswatun_hasanah_participation VARCHAR(200);
+ALTER TABLE registrations ADD COLUMN IF NOT EXISTS competition VARCHAR(20) NOT NULL DEFAULT 'quiz';
 ALTER TABLE registrations DROP COLUMN IF EXISTS email;
 ALTER TABLE registrations DROP COLUMN IF EXISTS phone;
 ALTER TABLE registrations DROP COLUMN IF EXISTS roll_no;
 ALTER TABLE registrations DROP COLUMN IF EXISTS institution;
 ALTER TABLE registrations DROP COLUMN IF EXISTS category;
 ALTER TABLE registrations DROP COLUMN IF EXISTS address;
+ALTER TABLE registrations DROP COLUMN IF EXISTS seerah_read_before;
+ALTER TABLE registrations DROP COLUMN IF EXISTS engagement_suggestions;
+ALTER TABLE registrations DROP COLUMN IF EXISTS programme_expectation;
+ALTER TABLE registrations DROP COLUMN IF EXISTS invitation_source;
