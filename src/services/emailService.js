@@ -97,10 +97,33 @@ async function sendNotificationToAll(participants, subject, body) {
   }
 
   const transporter = createTransporter();
+  const seenEmails = new Set();
   const sent = [];
   const failed = [];
+  const skipped = [];
 
   for (const participant of participants) {
+    const to = getParticipantEmail(participant);
+    if (!to) {
+      failed.push({
+        id: participant.id,
+        fullName: participant.fullName,
+        error: `No email address for ${participant.fullName || 'participant'}`
+      });
+      continue;
+    }
+
+    const emailKey = to.toLowerCase();
+    if (seenEmails.has(emailKey)) {
+      skipped.push({
+        id: participant.id,
+        fullName: participant.fullName,
+        email: to
+      });
+      continue;
+    }
+    seenEmails.add(emailKey);
+
     try {
       const email = await sendNotificationToParticipant(transporter, participant, subject, body);
       sent.push({
@@ -119,7 +142,7 @@ async function sendNotificationToAll(participants, subject, body) {
     await delay(150);
   }
 
-  return { sent, failed };
+  return { sent, failed, skipped };
 }
 
 module.exports = {

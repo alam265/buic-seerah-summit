@@ -51,11 +51,13 @@ async function handleSendNotification(req, res) {
 
     res.json({
       success: true,
-      message: `${result.sent.length} জনকে ইমেইল পাঠানো হয়েছে${result.failed.length ? `, ${result.failed.length} জন ব্যর্থ` : ''}।`,
+      message: `${result.sent.length} জনকে ইমেইল পাঠানো হয়েছে।`,
       sentCount: result.sent.length,
       failedCount: result.failed.length,
+      skippedCount: result.skipped.length,
       sent: result.sent,
-      failed: result.failed
+      failed: result.failed,
+      skipped: result.skipped
     });
   } catch (err) {
     console.error('Bulk Email Notification Error:', err);
