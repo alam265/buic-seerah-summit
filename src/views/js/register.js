@@ -37,20 +37,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function initScrollableSelect(select, maxVisible = 8) {
   if (!select) return;
 
+  let expanded = false;
+
   const expand = () => {
+    if (expanded) return;
+    expanded = true;
     select.size = Math.min(select.options.length, maxVisible);
     select.classList.add('is-expanded');
   };
 
   const collapse = () => {
+    if (!expanded) return;
+    expanded = false;
     select.size = 1;
     select.classList.remove('is-expanded');
   };
 
-  select.addEventListener('click', expand);
   select.addEventListener('focus', expand);
-  select.addEventListener('blur', collapse);
   select.addEventListener('change', collapse);
+  select.addEventListener('blur', collapse);
 }
 
 function getInitialCompetition() {
