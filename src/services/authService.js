@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getPool, getDbStatus, ensureDbReady } = require('../config/db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'BUIC_Seerah_admin_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 function isBcryptHash(storedPassword) {
   return /^\$2[abxy]\$/.test(String(storedPassword || ''));
