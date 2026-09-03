@@ -435,6 +435,14 @@ body {
   margin-bottom: 0;
 }
 
+.about-summit-tagline {
+  color: var(--text-heading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+
 .about-summit-body em {
   color: var(--text-heading);
   font-style: normal;
@@ -2165,6 +2173,56 @@ select.form-select-scrollable.is-expanded option {
 }
 
 .footer-links a:hover {
+  color: var(--accent-emerald);
+  transform: translateY(-2px);
+}
+
+.footer-social {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.footer-social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+  color: var(--text-heading);
+  transition: var(--transition);
+}
+
+.footer-social-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.footer-social a:hover {
+  color: var(--accent-emerald);
+}
+
+.footer-social a:hover .footer-social-icon {
+  background: rgba(20, 184, 166, 0.18);
+  border-color: var(--accent-emerald);
   color: var(--accent-emerald);
   transform: translateY(-2px);
 }

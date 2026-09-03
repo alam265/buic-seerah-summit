@@ -54,10 +54,10 @@ async function handleRegister(req, res) {
       });
     }
 
-    if (!fullName || !studentId || !department || !whatsapp || !gsuitEmail || !personalEmail || !gender) {
+    if (!fullName || !studentId || !department || !whatsapp || !facebookLink || !gsuitEmail || !personalEmail || !gender) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে পূর্ণ নাম, স্টুডেন্ট আইডি, ডিপার্টমেন্ট, হোয়াটসঅ্যাপ, জিসুইট ও পার্সোনাল ইমেইল এবং লিঙ্গ সঠিকভাবে পূরণ করুন।'
+        message: 'অনুগ্রহ করে পূর্ণ নাম, স্টুডেন্ট আইডি, ডিপার্টমেন্ট, হোয়াটসঅ্যাপ, ফেসবুক আইডি, জিসুইট ও পার্সোনাল ইমেইল এবং লিঙ্গ সঠিকভাবে পূরণ করুন।'
       });
     }
 

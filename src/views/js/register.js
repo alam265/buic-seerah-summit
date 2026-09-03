@@ -133,7 +133,7 @@ async function handleRegistrationSubmit(e) {
     uswatunHasanahParticipation: isQuiz ? uswatunHasanahParticipation : null
   };
 
-  if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.gsuitEmail || !payload.personalEmail || !payload.gender) {
+  if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.facebookLink || !payload.gsuitEmail || !payload.personalEmail || !payload.gender) {
     showToast('অনুগ্রহ করে সকল প্রয়োজনীয় ঘর সঠিকভাবে পূরণ করুন।', 'error');
     return;
   }
