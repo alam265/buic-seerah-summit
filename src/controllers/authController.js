@@ -26,7 +26,7 @@ async function handleAdminLogin(req, res) {
     res.cookie('admin_token', token, {
       httpOnly: true,
       secure: isProduction,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 2 * 60 * 60 * 1000, // 2 hours
       sameSite: 'lax'
     });
 

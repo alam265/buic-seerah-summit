@@ -76,7 +76,7 @@ function generateAdminToken(adminPayload) {
   return jwt.sign(
     { id: adminPayload.id, username: adminPayload.username },
     JWT_SECRET,
-    { expiresIn: '24h' }
+    { expiresIn: '2h' }
   );
 }
 
