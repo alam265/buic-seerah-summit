@@ -1060,31 +1060,6 @@ body {
   }
 }
 
-.book-discount-notice {
-  margin: -12px 0 24px;
-  padding: 12px 16px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.5;
-  text-align: center;
-  color: #fef3c7;
-  background: rgba(251, 191, 36, 0.16);
-  border: 1px solid rgba(251, 191, 36, 0.5);
-  border-radius: var(--radius-sm);
-}
-
-.book-discount-notice a {
-  color: #fde047;
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.book-discount-notice a:hover,
-.book-discount-notice a:focus-visible {
-  color: #fff;
-}
-
 .hero-title {
   font-size: 2.8rem;
   font-weight: 800;
