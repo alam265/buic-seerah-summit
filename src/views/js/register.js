@@ -159,6 +159,22 @@ async function handleRegistrationSubmit(e) {
 
     if (result.success) {
       showToast(result.message, 'success');
+      const wantsToPurchase =
+        isQuiz &&
+        uswatunHasanahParticipation ===
+          'Yes, I want to purchase Uswatun Hasanah, and participate';
+
+      if (wantsToPurchase) {
+        const params = new URLSearchParams({
+          studentId: payload.studentId,
+          fullName: payload.fullName,
+          gsuitEmail: payload.gsuitEmail,
+          whatsapp: payload.whatsapp
+        });
+        window.location.href = `/book-register?${params.toString()}`;
+        return;
+      }
+
       form.reset();
       setCompetitionTab(competition, { updateUrl: false });
       showTicketModal(result.registration, result.storageType);

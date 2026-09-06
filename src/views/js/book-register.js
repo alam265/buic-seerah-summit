@@ -15,6 +15,7 @@ let bkashNumber = '';
 
 document.addEventListener('DOMContentLoaded', () => {
   loadBookConfig();
+  prefillFromQuery();
 
   const step1 = document.getElementById('book-step1-form');
   const step2 = document.getElementById('book-step2-form');
@@ -28,6 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
     radio.addEventListener('change', onPaymentMethodChange);
   });
 });
+
+function prefillFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['studentId', 'fullName', 'gsuitEmail', 'whatsapp'];
+
+  fields.forEach((id) => {
+    const value = params.get(id);
+    const input = document.getElementById(id);
+    if (value && input) input.value = value;
+  });
+}
 
 async function loadBookConfig() {
   try {
