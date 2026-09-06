@@ -1753,22 +1753,28 @@ select.form-select-scrollable.is-expanded option {
 }
 
 .table-container {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: min(70vh, 640px);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  -webkit-overflow-scrolling: touch;
 }
 
 .data-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.92rem;
 }
 
 .data-table th {
-  background: rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-secondary);
   color: var(--accent-emerald);
   padding: 16px 20px;
   font-weight: 700;
