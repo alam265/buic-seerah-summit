@@ -66,6 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBookBtn.addEventListener('click', exportBookOrdersToCSV);
   }
 
+  const syncBookBtn = document.getElementById('sync-book-btn');
+  if (syncBookBtn) {
+    syncBookBtn.addEventListener('click', syncPurchaseIntents);
+  }
+
   const notifyEmailBtn = document.getElementById('notify-email-btn');
   if (notifyEmailBtn) {
     notifyEmailBtn.addEventListener('click', openNotifyModal);
@@ -544,6 +549,46 @@ async function deleteBookOrderItem(id, name) {
   } catch (err) {
     console.error(err);
     showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  }
+}
+
+async function syncPurchaseIntents() {
+  const btn = document.getElementById('sync-book-btn');
+  const original = btn ? btn.innerHTML : '';
+
+  if (!confirm(
+    'Sync purchase intents?\n\nThis will add quiz registrants who chose “purchase & participate” but are not yet in Book Orders.\n\nNew rows: Cash · 150 Tk · Participant'
+  )) {
+    return;
+  }
+
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Syncing...';
+    }
+
+    const res = await fetch('/api/book-orders/sync-purchases', { method: 'POST' });
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const result = await res.json();
+    if (result.success) {
+      showToast(result.message, 'success');
+      await fetchBookOrders();
+    } else {
+      showToast(result.message || 'Sync failed', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
   }
 }
 

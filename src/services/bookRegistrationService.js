@@ -172,6 +172,84 @@ async function deleteBookRegistration(id) {
   return true;
 }
 
+const PURCHASE_PARTICIPATION =
+  'Yes, I want to purchase Uswatun Hasanah, and participate';
+
+/**
+ * Sync competition registrants who chose purchase-and-participate
+ * into book_registrations (one row per student_id).
+ * payment_method=cash, amount_tk=150, is_participant=true
+ */
+async function syncPurchaseIntentsToBook() {
+  const { isNeonConnected, pool, dbError } = await getDbContext();
+
+  if (!isNeonConnected || !pool) {
+    requireNeonOrLocalDev();
+    throw new Error(dbError || 'Database is not connected.');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const missing = await client.query(
+      `
+      SELECT DISTINCT ON (r.student_id)
+        r.student_id,
+        r.full_name,
+        r.gsuit_email,
+        r.whatsapp
+      FROM registrations r
+      WHERE r.uswatun_hasanah_participation = $1
+        AND NOT EXISTS (
+          SELECT 1
+          FROM book_registrations b
+          WHERE b.student_id = r.student_id
+        )
+      ORDER BY r.student_id, r.created_at DESC
+      `,
+      [PURCHASE_PARTICIPATION]
+    );
+
+    const inserted = [];
+    for (const row of missing.rows) {
+      const result = await client.query(
+        `
+        INSERT INTO book_registrations (
+          student_id, full_name, gsuit_email, whatsapp,
+          is_participant, amount_tk, payment_method, txn_id
+        )
+        VALUES ($1, $2, $3, $4, TRUE, $5, 'cash', NULL)
+        ON CONFLICT (student_id) DO NOTHING
+        RETURNING *
+        `,
+        [
+          row.student_id,
+          row.full_name,
+          row.gsuit_email,
+          row.whatsapp,
+          PARTICIPANT_PRICE
+        ]
+      );
+      if (result.rows.length > 0) {
+        inserted.push(mapBookRow(result.rows[0]));
+      }
+    }
+
+    await client.query('COMMIT');
+    return {
+      found: missing.rows.length,
+      insertedCount: inserted.length,
+      inserted
+    };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   PARTICIPANT_PRICE,
   REGULAR_PRICE,
@@ -179,5 +257,6 @@ module.exports = {
   createBookRegistration,
   getAllBookRegistrations,
   deleteBookRegistration,
-  findBookRegistrationByStudentId
+  findBookRegistrationByStudentId,
+  syncPurchaseIntentsToBook
 };

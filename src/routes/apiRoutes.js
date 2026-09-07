@@ -7,7 +7,8 @@ const {
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,
-  handleDeleteBookOrder
+  handleDeleteBookOrder,
+  handleSyncPurchaseToBook
 } = require('../controllers/bookRegistrationController');
 const { handleHealthCheck } = require('../controllers/healthController');
 const { handleAdminLogin, handleAdminLogout, handleGetAdminStatus } = require('../controllers/authController');
@@ -32,6 +33,7 @@ router.put('/participants/:id', requireAdminAuth, handleUpdateParticipant);
 router.delete('/participants/:id', requireAdminAuth, handleDeleteParticipant);
 router.get('/book-orders', requireAdminAuth, handleGetBookOrders);
 router.delete('/book-orders/:id', requireAdminAuth, handleDeleteBookOrder);
+router.post('/book-orders/sync-purchases', requireAdminAuth, handleSyncPurchaseToBook);
 router.get('/notifications/email/status', requireAdminAuth, handleEmailStatus);
 router.post('/notifications/email/send', requireAdminAuth, handleSendNotification);
 

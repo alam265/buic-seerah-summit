@@ -3,7 +3,8 @@ const {
   createBookRegistration,
   getAllBookRegistrations,
   deleteBookRegistration,
-  findBookRegistrationByStudentId
+  findBookRegistrationByStudentId,
+  syncPurchaseIntentsToBook
 } = require('../services/bookRegistrationService');
 
 const PAYMENT_METHODS = ['cash', 'bkash'];
@@ -178,10 +179,42 @@ async function handleDeleteBookOrder(req, res) {
   }
 }
 
+async function handleSyncPurchaseToBook(req, res) {
+  try {
+    const result = await syncPurchaseIntentsToBook();
+    const message = result.insertedCount === 0
+      ? 'Sync complete — no new purchase intents to add.'
+      : `Sync complete — added ${result.insertedCount} book registration(s).`;
+
+    res.json({
+      success: true,
+      message,
+      found: result.found,
+      insertedCount: result.insertedCount,
+      inserted: result.inserted
+    });
+  } catch (err) {
+    console.error('Purchase sync error:', err);
+    if (err.code === 'DB_NOT_READY') {
+      return res.status(503).json({
+        success: false,
+        code: 'DB_NOT_READY',
+        retryable: true,
+        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Sync ব্যর্থ: ' + err.message
+    });
+  }
+}
+
 module.exports = {
   handleBookConfig,
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,
-  handleDeleteBookOrder
+  handleDeleteBookOrder,
+  handleSyncPurchaseToBook
 };

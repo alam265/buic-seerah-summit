@@ -287,6 +287,10 @@ UPDATE admins SET password = 'new_secure_password' WHERE username = 'admin';</pr
             style="font-size:1.3rem; font-weight:800; color:var(--accent-gold); margin-left:8px;">0</span>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button id="sync-book-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;"
+            title="Quiz registrants who chose purchase but are missing from book orders">
+            🔄 Sync Purchases
+          </button>
           <button id="export-book-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
             📥 Book CSV Export
           </button>
