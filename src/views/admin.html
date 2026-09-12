@@ -40,16 +40,18 @@
       <!-- Stats Bar & Actions -->
       <div class="admin-bar"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
-        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-          <div class="card" style="padding:12px 20px;">
-            <span style="font-size:0.8rem; color:var(--text-muted);">Registered:</span>
-            <span id="total-count"
-              style="font-size:1.3rem; font-weight:800; color:var(--accent-emerald); margin-left:8px;">0 জন</span>
+        <div class="admin-summary-cards">
+          <div class="card admin-stat-card">
+            <span class="admin-stat-label">Total Registered</span>
+            <span id="unique-count" class="admin-stat-value">0 জন</span>
           </div>
-          <div class="card" style="padding:12px 20px;">
-            <span style="font-size:0.8rem; color:var(--text-muted);">Storage:</span>
-            <span id="storage-type-badge"
-              style="font-size:0.9rem; font-weight:600; color:var(--text-heading); margin-left:8px;">—</span>
+          <div class="card admin-stat-card">
+            <span class="admin-stat-label">Quiz</span>
+            <span id="quiz-count" class="admin-stat-value">0 জন</span>
+          </div>
+          <div class="card admin-stat-card">
+            <span class="admin-stat-label">Open Book</span>
+            <span id="openbook-count" class="admin-stat-value">0 জন</span>
           </div>
         </div>
 

@@ -1,10 +1,10 @@
 const { getDbStatus, ensureDbReady, getPool } = require('../config/db');
-const { getRegistrationsCount } = require('../services/registrationService');
+const { getRegistrationSummary } = require('../services/registrationService');
 
 async function handleHealthCheck(req, res) {
   await ensureDbReady();
   const { isNeonConnected, dbError } = getDbStatus();
-  const count = await getRegistrationsCount();
+  const summary = await getRegistrationSummary();
 
   let adminCount = null;
   if (isNeonConnected && getPool()) {
@@ -21,7 +21,8 @@ async function handleHealthCheck(req, res) {
     isNeonConnected,
     dbError,
     adminCount,
-    totalRegistrations: count,
+    totalRegistrations: summary.uniqueParticipants,
+    summary,
     envConfigured: Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL.trim().length > 0),
     authMode: isNeonConnected ? 'database' : 'env_fallback'
   });

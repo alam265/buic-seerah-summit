@@ -23,7 +23,7 @@ function updateDbStatusBanner(storageType) {
   const isNeon = storageType.includes('Neon');
   banner.className = isNeon ? 'db-status-banner connected' : 'db-status-banner fallback';
   banner.innerHTML = isNeon
-    ? '<span><span class="db-status-dot"></span> 🟢 Neon PostgreSQL: <strong>Connected</strong></span>'
+    ? '<span><span class="db-status-dot"></span> 🟢 Database: <strong>Connected</strong></span>'
     : `<span><span class="db-status-dot"></span> 🟡 Storage: <strong>${escapeHtml(storageType)}</strong></span>`;
 }
 
@@ -103,7 +103,9 @@ async function handleLogout() {
 
 async function fetchParticipants(retryCount = 0) {
   const tbody = document.getElementById('participants-tbody');
-  const countBadge = document.getElementById('total-count');
+  const uniqueCountEl = document.getElementById('unique-count');
+  const quizCountEl = document.getElementById('quiz-count');
+  const openBookCountEl = document.getElementById('openbook-count');
   const storageBadge = document.getElementById('storage-type-badge');
   if (!tbody) return;
 
@@ -129,7 +131,14 @@ async function fetchParticipants(retryCount = 0) {
 
     if (result.success) {
       participantsData = result.participants || [];
-      if (countBadge) countBadge.innerText = `${result.count} জন`;
+      const summary = result.summary || {};
+      const uniqueCount = summary.uniqueParticipants ?? result.count ?? 0;
+      const quizCount = summary.quizCount ?? 0;
+      const openBookCount = summary.openBookCount ?? 0;
+
+      if (uniqueCountEl) uniqueCountEl.innerText = `${uniqueCount} জন`;
+      if (quizCountEl) quizCountEl.innerText = `${quizCount} জন`;
+      if (openBookCountEl) openBookCountEl.innerText = `${openBookCount} জন`;
       if (storageBadge) storageBadge.innerText = result.storageType || '';
       updateDbStatusBanner(result.storageType);
       renderTable(participantsData);

@@ -3,7 +3,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPartials();
   initNavbar();
-  initCountdown();
   checkBackendHealth();
 });
 
@@ -71,37 +70,6 @@ function initNavbar() {
   }
 }
 
-function initCountdown() {
-  const timerContainer = document.getElementById('countdown');
-  if (!timerContainer) return;
-
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + 14);
-
-  function updateTimer() {
-    const now = new Date().getTime();
-    const distance = targetDate.getTime() - now;
-
-    if (distance < 0) {
-      timerContainer.innerHTML = '<div class="time-box" style="grid-column: 1/-1;">রেজিস্ট্রেশান এবং সীরাত প্রতিযোগিতা চলছে!</div>';
-      return;
-    }
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
-    document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
-    document.getElementById('cd-minutes').innerText = String(minutes).padStart(2, '0');
-    document.getElementById('cd-seconds').innerText = String(seconds).padStart(2, '0');
-  }
-
-  updateTimer();
-  setInterval(updateTimer, 1000);
-}
-
 async function checkBackendHealth() {
   const statusBadge = document.getElementById('db-status-banner');
   if (!statusBadge) return;
@@ -113,7 +81,6 @@ async function checkBackendHealth() {
     if (data.isNeonConnected) {
       statusBadge.className = 'db-status-banner connected';
       statusBadge.innerHTML = `
-        <span><span class="db-status-dot"></span> 🟢 Neon PostgreSQL ডাটাবেজ: <strong>সক্রিয় (Connected)</strong></span>
         <span style="font-size:0.8rem; opacity:0.8;">মোট নিবন্ধিত: ${data.totalRegistrations} জন</span>
       `;
     } else {

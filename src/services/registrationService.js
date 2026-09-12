@@ -142,14 +142,37 @@ async function registerParticipant({
   };
 }
 
+function buildRegistrationSummary(participants) {
+  const uniqueStudentIds = new Set();
+  let quizCount = 0;
+  let openBookCount = 0;
+
+  for (const p of participants) {
+    const studentId = String(p.studentId || '').trim().toLowerCase();
+    if (studentId) uniqueStudentIds.add(studentId);
+
+    if (p.competition === 'seerah') openBookCount += 1;
+    else if (p.competition === 'quiz') quizCount += 1;
+  }
+
+  return {
+    rowCount: participants.length,
+    uniqueParticipants: uniqueStudentIds.size,
+    quizCount,
+    openBookCount
+  };
+}
+
 async function getAllParticipants() {
   const { isNeonConnected, pool } = await getDbContext();
 
   if (isNeonConnected && pool) {
     const result = await pool.query('SELECT * FROM registrations ORDER BY id DESC');
     const formatted = result.rows.map(mapRegistrationRow);
+    const summary = buildRegistrationSummary(formatted);
     return {
-      count: formatted.length,
+      count: summary.uniqueParticipants,
+      summary,
       participants: formatted,
       storageType: 'Neon PostgreSQL'
     };
@@ -157,9 +180,12 @@ async function getAllParticipants() {
 
   requireNeonOrLocalDev();
 
+  const participants = [...localRegistrations].reverse();
+  const summary = buildRegistrationSummary(participants);
   return {
-    count: localRegistrations.length,
-    participants: [...localRegistrations].reverse(),
+    count: summary.uniqueParticipants,
+    summary,
+    participants,
     storageType: 'Local Memory Fallback'
   };
 }
@@ -189,7 +215,9 @@ async function getRegistrationsCount() {
 
   if (isNeonConnected && pool) {
     try {
-      const result = await pool.query('SELECT COUNT(*) FROM registrations');
+      const result = await pool.query(
+        "SELECT COUNT(DISTINCT LOWER(TRIM(student_id))) AS count FROM registrations WHERE TRIM(student_id) <> ''"
+      );
       return parseInt(result.rows[0].count, 10);
     } catch (e) {
       console.error('Error counting registrations:', e);
@@ -197,7 +225,38 @@ async function getRegistrationsCount() {
     }
   }
 
-  return localRegistrations.length;
+  return buildRegistrationSummary(localRegistrations).uniqueParticipants;
+}
+
+async function getRegistrationSummary() {
+  const { isNeonConnected, pool } = await getDbContext();
+
+  if (isNeonConnected && pool) {
+    try {
+      const result = await pool.query(`
+        SELECT
+          COUNT(*)::int AS row_count,
+          COUNT(DISTINCT CASE
+            WHEN TRIM(student_id) <> '' THEN LOWER(TRIM(student_id))
+          END)::int AS unique_participants,
+          COUNT(*) FILTER (WHERE competition = 'quiz')::int AS quiz_count,
+          COUNT(*) FILTER (WHERE competition = 'seerah')::int AS open_book_count
+        FROM registrations
+      `);
+      const row = result.rows[0];
+      return {
+        rowCount: row.row_count,
+        uniqueParticipants: row.unique_participants,
+        quizCount: row.quiz_count,
+        openBookCount: row.open_book_count
+      };
+    } catch (e) {
+      console.error('Error building registration summary:', e);
+      return { rowCount: 0, uniqueParticipants: 0, quizCount: 0, openBookCount: 0 };
+    }
+  }
+
+  return buildRegistrationSummary(localRegistrations);
 }
 
 async function updateParticipant(id, {
@@ -288,6 +347,7 @@ module.exports = {
   registerParticipant,
   getAllParticipants,
   getRegistrationsCount,
+  getRegistrationSummary,
   isCompetitionParticipant,
   updateParticipant,
   deleteParticipant

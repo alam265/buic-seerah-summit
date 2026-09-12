@@ -115,6 +115,7 @@ async function handleGetParticipants(req, res) {
     res.json({
       success: true,
       count: data.count,
+      summary: data.summary,
       participants: data.participants,
       storageType: data.storageType
     });
