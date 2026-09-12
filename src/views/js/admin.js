@@ -16,17 +16,6 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function updateDbStatusBanner(storageType) {
-  const banner = document.getElementById('db-status-banner');
-  if (!banner || !storageType) return;
-
-  const isNeon = storageType.includes('Neon');
-  banner.className = isNeon ? 'db-status-banner connected' : 'db-status-banner fallback';
-  banner.innerHTML = isNeon
-    ? '<span><span class="db-status-dot"></span> 🟢 Database: <strong>Connected</strong></span>'
-    : `<span><span class="db-status-dot"></span> 🟡 Storage: <strong>${escapeHtml(storageType)}</strong></span>`;
-}
-
 function shouldRetryFetch(response, result) {
   return response.status === 503 || result?.code === 'DB_NOT_READY' || result?.retryable === true;
 }
@@ -140,7 +129,6 @@ async function fetchParticipants(retryCount = 0) {
       if (quizCountEl) quizCountEl.innerText = `${quizCount} জন`;
       if (openBookCountEl) openBookCountEl.innerText = `${openBookCount} জন`;
       if (storageBadge) storageBadge.innerText = result.storageType || '';
-      updateDbStatusBanner(result.storageType);
       renderTable(participantsData);
     } else {
       tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
