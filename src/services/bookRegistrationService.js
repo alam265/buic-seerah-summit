@@ -3,9 +3,15 @@ const { isCompetitionParticipant } = require('./registrationService');
 
 const PARTICIPANT_PRICE = 150;
 const REGULAR_PRICE = 220;
+const HANDOVER_STATUSES = ['pending', 'received'];
 
 const localBookRegistrations = [];
 let localBookIdSeq = 1;
+
+function sanitizeHandoverStatus(value) {
+  const status = String(value || '').trim().toLowerCase();
+  return HANDOVER_STATUSES.includes(status) ? status : 'pending';
+}
 
 function sanitizePersonalEmail(value) {
   const trimmed = String(value || '').trim();
@@ -90,6 +96,7 @@ function mapBookRow(row) {
     amountTk: row.amount_tk,
     paymentMethod: row.payment_method,
     senderBkashNumber: row.txn_id || '',
+    handoverStatus: sanitizeHandoverStatus(row.handover_status),
     createdAt: row.created_at
   };
 }
@@ -208,6 +215,7 @@ async function createBookRegistration({
     senderBkashNumber: cleanSenderBkash,
     personalEmail: cleanPersonalEmail,
     gender: '',
+    handoverStatus: 'pending',
     createdAt: new Date().toISOString()
   };
   localBookRegistrations.push(newReg);
@@ -235,6 +243,7 @@ async function getAllBookRegistrations() {
         b.amount_tk,
         b.payment_method,
         b.txn_id,
+        b.handover_status,
         b.created_at,
         COALESCE(
           NULLIF(TRIM(b.personal_email), ''),
@@ -275,6 +284,39 @@ async function getAllBookRegistrations() {
     orders: [...localBookRegistrations].reverse(),
     storageType: 'Local Memory Fallback'
   };
+}
+
+async function updateBookHandoverStatus(id, handoverStatus) {
+  const status = String(handoverStatus || '').trim().toLowerCase();
+  if (!HANDOVER_STATUSES.includes(status)) {
+    const err = new Error('INVALID_HANDOVER_STATUS');
+    err.code = 'INVALID_HANDOVER_STATUS';
+    throw err;
+  }
+
+  const { isNeonConnected, pool } = await getDbContext();
+
+  if (isNeonConnected && pool) {
+    const result = await pool.query(
+      `
+      UPDATE book_registrations
+      SET handover_status = $1
+      WHERE id = $2
+      RETURNING *
+      `,
+      [status, id]
+    );
+    if (result.rows.length === 0) return null;
+    return mapBookRow(result.rows[0]);
+  }
+
+  const idx = localBookRegistrations.findIndex((p) => p.id === parseInt(id, 10));
+  if (idx === -1) return null;
+  localBookRegistrations[idx] = {
+    ...localBookRegistrations[idx],
+    handoverStatus: status
+  };
+  return localBookRegistrations[idx];
 }
 
 async function deleteBookRegistration(id) {
@@ -377,9 +419,11 @@ async function syncPurchaseIntentsToBook() {
 module.exports = {
   PARTICIPANT_PRICE,
   REGULAR_PRICE,
+  HANDOVER_STATUSES,
   lookupParticipantPricing,
   createBookRegistration,
   getAllBookRegistrations,
+  updateBookHandoverStatus,
   deleteBookRegistration,
   findBookRegistrationByStudentId,
   syncPurchaseIntentsToBook

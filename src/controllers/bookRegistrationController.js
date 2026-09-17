@@ -2,9 +2,11 @@ const {
   lookupParticipantPricing,
   createBookRegistration,
   getAllBookRegistrations,
+  updateBookHandoverStatus,
   deleteBookRegistration,
   findBookRegistrationByStudentId,
-  syncPurchaseIntentsToBook
+  syncPurchaseIntentsToBook,
+  HANDOVER_STATUSES
 } = require('../services/bookRegistrationService');
 
 const PAYMENT_METHODS = ['cash', 'bkash'];
@@ -167,6 +169,41 @@ async function handleGetBookOrders(req, res) {
   }
 }
 
+async function handleUpdateBookHandoverStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { handoverStatus } = req.body || {};
+    const status = String(handoverStatus || '').trim().toLowerCase();
+
+    if (!HANDOVER_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Handover status must be pending or received.'
+      });
+    }
+
+    const order = await updateBookHandoverStatus(id, status);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'বই রেজিস্ট্রেশন খুঁজে পাওয়া যায়নি।' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Handover status updated.',
+      order
+    });
+  } catch (err) {
+    if (err.code === 'INVALID_HANDOVER_STATUS') {
+      return res.status(400).json({
+        success: false,
+        message: 'Handover status must be pending or received.'
+      });
+    }
+    console.error('Book handover status update error:', err);
+    res.status(500).json({ success: false, message: 'স্ট্যাটাস আপডেট ব্যর্থ: ' + err.message });
+  }
+}
+
 async function handleDeleteBookOrder(req, res) {
   try {
     const { id } = req.params;
@@ -217,6 +254,7 @@ module.exports = {
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,
+  handleUpdateBookHandoverStatus,
   handleDeleteBookOrder,
   handleSyncPurchaseToBook
 };

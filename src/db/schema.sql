@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS book_registrations (
     amount_tk INTEGER NOT NULL,
     payment_method VARCHAR(20) NOT NULL,
     txn_id VARCHAR(100),
+    handover_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -83,3 +84,4 @@ ALTER TABLE registrations DROP COLUMN IF EXISTS engagement_suggestions;
 ALTER TABLE registrations DROP COLUMN IF EXISTS programme_expectation;
 ALTER TABLE registrations DROP COLUMN IF EXISTS invitation_source;
 ALTER TABLE book_registrations ADD COLUMN IF NOT EXISTS personal_email VARCHAR(100) NOT NULL DEFAULT '';
+ALTER TABLE book_registrations ADD COLUMN IF NOT EXISTS handover_status VARCHAR(20) NOT NULL DEFAULT 'pending';

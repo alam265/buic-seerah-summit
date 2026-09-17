@@ -7,6 +7,7 @@ const {
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,
+  handleUpdateBookHandoverStatus,
   handleDeleteBookOrder,
   handleSyncPurchaseToBook
 } = require('../controllers/bookRegistrationController');
@@ -32,6 +33,7 @@ router.get('/participants', requireAdminAuth, handleGetParticipants);
 router.put('/participants/:id', requireAdminAuth, handleUpdateParticipant);
 router.delete('/participants/:id', requireAdminAuth, handleDeleteParticipant);
 router.get('/book-orders', requireAdminAuth, handleGetBookOrders);
+router.patch('/book-orders/:id/handover-status', requireAdminAuth, handleUpdateBookHandoverStatus);
 router.delete('/book-orders/:id', requireAdminAuth, handleDeleteBookOrder);
 router.post('/book-orders/sync-purchases', requireAdminAuth, handleSyncPurchaseToBook);
 router.get('/notifications/email/status', requireAdminAuth, handleEmailStatus);

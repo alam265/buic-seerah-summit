@@ -6,7 +6,7 @@ const COMPETITION_LABELS = {
   quiz: 'Quiz',
   seerah: 'Open Book'
 };
-const BOOK_COLSPAN = 13;
+const BOOK_COLSPAN = 14;
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_BASE_MS = 2000;
 let participantsData = [];
@@ -647,6 +647,7 @@ function renderBookOrdersTable(data) {
       year: 'numeric'
     });
     const paymentLabel = item.paymentMethod === 'bkash' ? 'bKash' : 'Cash';
+    const handoverStatus = item.handoverStatus === 'received' ? 'received' : 'pending';
 
     return `
       <tr>
@@ -661,6 +662,14 @@ function renderBookOrdersTable(data) {
         <td><strong>${item.amountTk} Tk</strong></td>
         <td>${paymentLabel}</td>
         <td>${escapeHtml(item.senderBkashNumber || '—')}</td>
+        <td class="book-handover-col">
+          <select class="book-handover-select is-${handoverStatus}" data-id="${item.id}"
+            aria-label="Book handover status"
+            onchange="updateBookHandoverStatus(${item.id}, this.value, this)">
+            <option value="pending" ${handoverStatus === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="received" ${handoverStatus === 'received' ? 'selected' : ''}>Received</option>
+          </select>
+        </td>
         <td style="font-size:0.85rem; color:var(--text-muted);">${createdDate}</td>
         <td style="text-align:center;">
           <button onclick="deleteBookOrderItem(${item.id}, '${escapeHtml(item.fullName)}')" class="btn"
@@ -670,6 +679,61 @@ function renderBookOrdersTable(data) {
       </tr>
     `;
   }).join('');
+}
+
+async function updateBookHandoverStatus(id, handoverStatus, selectEl) {
+  const previous = bookOrdersData.find((item) => item.id === id)?.handoverStatus || 'pending';
+  if (selectEl) {
+    selectEl.disabled = true;
+    selectEl.classList.remove('is-pending', 'is-received');
+    selectEl.classList.add(`is-${handoverStatus}`);
+  }
+
+  try {
+    const res = await fetch(`/api/book-orders/${id}/handover-status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handoverStatus })
+    });
+    if (res.status === 401) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const result = await res.json();
+    if (!result.success) {
+      if (selectEl) {
+        selectEl.value = previous;
+        selectEl.classList.remove('is-pending', 'is-received');
+        selectEl.classList.add(`is-${previous}`);
+      }
+      showToast(result.message || 'স্ট্যাটাস আপডেট ব্যর্থ', 'error');
+      return;
+    }
+
+    const idx = bookOrdersData.findIndex((item) => item.id === id);
+    if (idx !== -1) {
+      bookOrdersData[idx] = {
+        ...bookOrdersData[idx],
+        handoverStatus: result.order?.handoverStatus || handoverStatus
+      };
+    }
+    if (selectEl) {
+      selectEl.classList.remove('is-pending', 'is-received');
+      selectEl.classList.add(`is-${result.order?.handoverStatus || handoverStatus}`);
+    }
+    showToast('Handover status updated', 'success');
+  } catch (err) {
+    console.error(err);
+    if (selectEl) {
+      selectEl.value = previous;
+      selectEl.classList.remove('is-pending', 'is-received');
+      selectEl.classList.add(`is-${previous}`);
+    }
+    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+  } finally {
+    if (selectEl) selectEl.disabled = false;
+  }
 }
 
 function filterBookOrders() {
@@ -761,7 +825,7 @@ function exportBookOrdersToCSV() {
 
   const headers = [
     'ID', 'Full Name', 'Student ID', 'Gender', 'Gsuit Email', 'Personal Email', 'WhatsApp',
-    'Is Participant', 'Amount Tk', 'Payment Method', 'bKash Number', 'Created At'
+    'Is Participant', 'Amount Tk', 'Payment Method', 'bKash Number', 'Handover Status', 'Created At'
   ];
   const rows = bookOrdersData.map((p) => [
     p.id,
@@ -775,6 +839,7 @@ function exportBookOrdersToCSV() {
     p.amountTk,
     `"${p.paymentMethod}"`,
     `"${p.senderBkashNumber || ''}"`,
+    `"${p.handoverStatus || 'pending'}"`,
     `"${p.createdAt}"`
   ]);
 

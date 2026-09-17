@@ -1929,6 +1929,91 @@ select.form-select-scrollable.is-expanded option {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Book handover: sticky column + status select */
+.book-handover-col {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  min-width: 148px;
+  width: 148px;
+  background: var(--bg-card);
+  box-shadow: -8px 0 16px rgba(0, 0, 0, 0.28);
+}
+
+.data-table th.book-handover-col {
+  z-index: 3;
+  background: var(--bg-secondary);
+}
+
+.data-table tr:hover .book-handover-col {
+  background: rgba(23, 27, 56, 0.98);
+}
+
+.book-handover-select {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: dark;
+  width: 100%;
+  min-width: 118px;
+  padding: 8px 32px 8px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  color: #f8fafc;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.book-handover-select:focus {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
+}
+
+.book-handover-select:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.book-handover-select.is-pending {
+  color: #fff7ed;
+  background-color: rgba(245, 158, 11, 0.28);
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.book-handover-select.is-received {
+  color: #ecfdf5;
+  background-color: rgba(16, 185, 129, 0.28);
+  border-color: rgba(16, 185, 129, 0.55);
+}
+
+.book-handover-select.is-pending:hover {
+  background-color: rgba(245, 158, 11, 0.36);
+}
+
+.book-handover-select.is-received:hover {
+  background-color: rgba(16, 185, 129, 0.36);
+}
+
+.book-handover-select option,
+.book-handover-select option:checked,
+.book-handover-select option:hover,
+.book-handover-select option:focus {
+  color: #f8fafc !important;
+  background-color: #0f132a !important;
+  font-weight: 600;
+}
+
 /* ===================== COMPETITION POSTER SHOWCASE ===================== */
 .poster-showcase-section {
   margin-bottom: 80px;
