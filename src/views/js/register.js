@@ -169,6 +169,7 @@ async function handleRegistrationSubmit(e) {
           studentId: payload.studentId,
           fullName: payload.fullName,
           gsuitEmail: payload.gsuitEmail,
+          personalEmail: payload.personalEmail,
           whatsapp: payload.whatsapp
         });
         window.location.href = `/book-register?${params.toString()}`;

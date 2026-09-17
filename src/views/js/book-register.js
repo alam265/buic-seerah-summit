@@ -4,6 +4,7 @@ let formState = {
   studentId: '',
   fullName: '',
   gsuitEmail: '',
+  personalEmail: '',
   whatsapp: '',
   isParticipant: false,
   amountTk: 220,
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function prefillFromQuery() {
   const params = new URLSearchParams(window.location.search);
-  const fields = ['studentId', 'fullName', 'gsuitEmail', 'whatsapp'];
+  const fields = ['studentId', 'fullName', 'gsuitEmail', 'personalEmail', 'whatsapp'];
 
   fields.forEach((id) => {
     const value = params.get(id);
@@ -62,10 +63,11 @@ async function handleLookupSubmit(e) {
     studentId: document.getElementById('studentId').value.trim(),
     fullName: document.getElementById('fullName').value.trim(),
     gsuitEmail: document.getElementById('gsuitEmail').value.trim(),
+    personalEmail: document.getElementById('personalEmail').value.trim(),
     whatsapp: document.getElementById('whatsapp').value.trim()
   };
 
-  if (!payload.studentId || !payload.fullName || !payload.gsuitEmail || !payload.whatsapp) {
+  if (!payload.studentId || !payload.fullName || !payload.gsuitEmail || !payload.personalEmail || !payload.whatsapp) {
     showToast('অনুগ্রহ করে সকল ঘর পূরণ করুন।', 'error');
     return;
   }
@@ -244,6 +246,7 @@ async function handleBookSubmit(e) {
         studentId: formState.studentId,
         fullName: formState.fullName,
         gsuitEmail: formState.gsuitEmail,
+        personalEmail: formState.personalEmail,
         whatsapp: formState.whatsapp,
         paymentMethod,
         senderBkashNumber: paymentMethod === 'bkash' ? senderBkashNumber : ''

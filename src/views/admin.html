@@ -25,86 +25,167 @@
     <div class="container">
 
       <!-- Header -->
-      <div class="section-header" style="margin-bottom:30px;">
-        <!-- <div class="badge-tag">📊 Neon PostgreSQL Records</div> -->
-        <h1 class="section-title">নিবন্ধিত অংশগ্রহণকারীদের ডাটাবেজ</h1>
-        <!-- <p class="hero-subtitle">
-          Neon ডাটাবেজে সংরক্ষিত সমস্ত নিবন্ধনের রিয়েল-টাইম তালিকা, তথ্য অনুসন্ধান ও ফাইল ডাউনলোড সুবিধা।
-        </p> -->
+      <div class="section-header" style="margin-bottom:24px;">
+        <h1 class="section-title" id="admin-page-title">নিবন্ধিত অংশগ্রহণকারীদের ডাটাবেজ</h1>
       </div>
 
-      <!-- Stats Bar & Actions -->
-      <div class="admin-bar"
-        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
-        <div class="admin-summary-cards">
-          <div class="card admin-stat-card">
-            <span class="admin-stat-label">Total Registered</span>
-            <span id="unique-count" class="admin-stat-value">0 জন</span>
+      <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+        <button type="button" class="admin-tab is-active" role="tab" id="tab-registrations"
+          data-tab="registrations" aria-controls="panel-registrations" aria-selected="true">
+          Registration
+          <span id="tab-registrations-count" class="admin-tab-count">0</span>
+        </button>
+        <button type="button" class="admin-tab" role="tab" id="tab-books"
+          data-tab="books" aria-controls="panel-books" aria-selected="false">
+          Book Registration
+          <span id="tab-books-count" class="admin-tab-count">0</span>
+        </button>
+      </div>
+
+      <section id="panel-registrations" class="admin-tab-panel is-active" role="tabpanel"
+        aria-labelledby="tab-registrations">
+        <!-- Stats Bar & Actions -->
+        <div class="admin-bar"
+          style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+          <div class="admin-summary-cards">
+            <div class="card admin-stat-card">
+              <span class="admin-stat-label">Total Registered</span>
+              <span id="unique-count" class="admin-stat-value">0 জন</span>
+            </div>
+            <div class="card admin-stat-card">
+              <span class="admin-stat-label">Quiz</span>
+              <span id="quiz-count" class="admin-stat-value">0 জন</span>
+            </div>
+            <div class="card admin-stat-card">
+              <span class="admin-stat-label">Open Book</span>
+              <span id="openbook-count" class="admin-stat-value">0 জন</span>
+            </div>
           </div>
-          <div class="card admin-stat-card">
-            <span class="admin-stat-label">Quiz</span>
-            <span id="quiz-count" class="admin-stat-value">0 জন</span>
-          </div>
-          <div class="card admin-stat-card">
-            <span class="admin-stat-label">Open Book</span>
-            <span id="openbook-count" class="admin-stat-value">0 জন</span>
+
+          <div class="admin-action-bar" style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button id="export-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
+              📥 CSV এক্সপোর্ট (Download)
+            </button>
+            <button id="notify-email-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;">
+              📧 সবাইকে ইমেইল পাঠান
+            </button>
+            <button onclick="fetchParticipants()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
+              🔄 রিফ্রেশ ডাটা
+            </button>
           </div>
         </div>
 
-        <div class="admin-action-bar" style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button id="export-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
-            📥 CSV এক্সপোর্ট (Download)
-          </button>
-          <button id="notify-email-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;">
-            📧 সবাইকে ইমেইল পাঠান
-          </button>
-          <button onclick="fetchParticipants()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
-            🔄 রিফ্রেশ ডাটা
-          </button>
+        <!-- Search & Filter Bar -->
+        <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap;">
+          <input type="text" id="search-input" class="form-input"
+            placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন..."
+            style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
+          <select id="competition-filter" class="form-input" style="padding: 14px 20px; font-size: 1rem; min-width:200px;">
+            <option value="">All Competitions</option>
+            <option value="quiz">Quiz</option>
+            <option value="seerah">Open Book (Seerah)</option>
+          </select>
+          <div class="admin-gender-filter" role="group" aria-label="Filter by gender">
+            <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="participants">Male</button>
+            <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="participants">Female</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Search & Filter Bar -->
-      <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap;">
-        <input type="text" id="search-input" class="form-input"
-          placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন..."
-          style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
-        <select id="competition-filter" class="form-input" style="padding: 14px 20px; font-size: 1rem; min-width:200px;">
-          <option value="">All Competitions</option>
-          <option value="quiz">Quiz</option>
-          <option value="seerah">Open Book (Seerah)</option>
-        </select>
-      </div>
+        <!-- Participants Data Table -->
+        <div class="table-container" style="margin-bottom: 50px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>টিকিট আইডি</th>
+                <th>Competition</th>
+                <th>নাম</th>
+                <th>স্টুডেন্ট আইডি</th>
+                <th>সেমিস্টার</th>
+                <th>ডিপার্টমেন্ট</th>
+                <th>হোয়াটসঅ্যাপ</th>
+                <th>লিঙ্গ</th>
+                <th>জিসুইট ইমেইল</th>
+                <th>পার্সোনাল ইমেইল</th>
+                <th>ফেসবুক লিংক</th>
+                <th>Uswatun Read</th>
+                <th>তারিখ</th>
+                <th style="text-align:center;">অ্যাকশন (Manage)</th>
+              </tr>
+            </thead>
+            <tbody id="participants-tbody">
+              <tr>
+                <td colspan="7" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য আনা হচ্ছে...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      <!-- Participants Data Table -->
-      <div class="table-container" style="margin-bottom: 50px;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>টিকিট আইডি</th>
-              <th>Competition</th>
-              <th>নাম</th>
-              <th>স্টুডেন্ট আইডি</th>
-              <th>সেমিস্টার</th>
-              <th>ডিপার্টমেন্ট</th>
-              <th>হোয়াটসঅ্যাপ</th>
-              <th>লিঙ্গ</th>
-              <th>জিসুইট ইমেইল</th>
-              <th>পার্সোনাল ইমেইল</th>
-              <th>ফেসবুক লিংক</th>
-              <th>Uswatun Read</th>
-              <th>তারিখ</th>
-              <th style="text-align:center;">অ্যাকশন (Manage)</th>
-            </tr>
-          </thead>
-          <tbody id="participants-tbody">
-            <tr>
-              <td colspan="7" style="text-align:center; padding:30px;">🔄 ডাটাবেজ থেকে তথ্য আনা হচ্ছে...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <section id="panel-books" class="admin-tab-panel" role="tabpanel" aria-labelledby="tab-books" hidden>
+        <p class="hero-subtitle" style="margin: 0 0 24px;">উসওয়াতুন হাসানাহ বই ক্রয়ের সকল রেজিস্ট্রেশন।</p>
+
+        <div class="admin-bar"
+          style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
+          <div class="card" style="padding:12px 20px;">
+            <span style="font-size:0.8rem; color:var(--text-muted);">Book Orders:</span>
+            <span id="book-total-count"
+              style="font-size:1.3rem; font-weight:800; color:var(--accent-gold); margin-left:8px;">0</span>
+          </div>
+          <div class="admin-action-bar" style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button id="notify-book-email-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;">
+              📧 বই ক্রেতাদের ইমেইল পাঠান
+            </button>
+            <button id="sync-book-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;"
+              title="Quiz registrants who chose purchase but are missing from book orders">
+              🔄 Sync Purchases
+            </button>
+            <button id="export-book-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
+              📥 Book CSV Export
+            </button>
+            <button onclick="fetchBookOrders()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
+              🔄 Refresh Books
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="book-search-input" class="form-input"
+            placeholder="🔍 নাম, স্টুডেন্ট আইডি, ইমেইল, হোয়াটসঅ্যাপ, bKash নম্বর দিয়ে খুঁজুন..."
+            style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
+          <div class="admin-gender-filter" role="group" aria-label="Filter book orders by gender">
+            <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="books">Male</button>
+            <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="books">Female</button>
+          </div>
+        </div>
+
+        <div class="table-container" style="margin-bottom: 50px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>নাম</th>
+                <th>স্টুডেন্ট আইডি</th>
+                <th>লিঙ্গ</th>
+                <th>জিসুইট ইমেইল</th>
+                <th>পার্সোনাল ইমেইল</th>
+                <th>হোয়াটসঅ্যাপ</th>
+                <th>Participant</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>bKash Number</th>
+                <th>তারিখ</th>
+                <th style="text-align:center;">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="book-orders-tbody">
+              <tr>
+                <td colspan="13" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- Edit / Add Participant Modal -->
       <div id="edit-modal"
@@ -211,7 +292,7 @@
         <div class="card"
           style="max-width:620px; width:100%; max-height:90vh; overflow-y:auto; background:var(--bg-card); border:1px solid var(--accent-emerald); border-radius:12px; padding:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 style="color:var(--accent-emerald); margin:0;">📧 সব অংশগ্রহণকারীকে ইমেইল পাঠান</h3>
+            <h3 id="notify-modal-title" style="color:var(--accent-emerald); margin:0;">📧 সব অংশগ্রহণকারীকে ইমেইল পাঠান</h3>
             <button onclick="closeNotifyModal()"
               style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
           </div>
@@ -233,100 +314,6 @@
             </div>
           </form>
         </div>
-      </div>
-
-      <!-- Neon Setup SQL Helper Card -->
-      <!-- <div class="card" style="border-color: rgba(168, 85, 247, 0.4);">
-        <h3 class="card-title" style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:12px;">
-          🛠️ Neon Database SQL Queries (Direct Manual Management)
-        </h3>
-        <p class="card-desc" style="margin-bottom:12px;">
-          Neon SQL Editor এ সরাসরি ম্যানুয়ালি View, Insert, Edit ও Delete করার জন্য প্রয়োজনীয় SQL ক্যোয়ারীসমূহ:
-        </p>
-        <pre
-          style="background:rgba(0,0,0,0.4); color:#c084fc; padding:16px; border-radius:8px; overflow-x:auto; font-size:0.85rem; border:1px solid var(--border-color);">
--- 1. View all participant registrations
-SELECT * FROM registrations ORDER BY id DESC;
-
--- 2. Add (Insert) a new participant row manually
-INSERT INTO registrations (ticket_id, full_name, email, phone, department, roll_no)
-VALUES ('BUIC-2026-99999', 'রহিম আহমেদ', 'rahim@example.com', '01711000000', 'CSE', '26301099');
-
--- 3. Edit (Update) a participant row manually
-UPDATE registrations 
-SET full_name = 'নতুন নাম', department = 'EEE' 
-WHERE ticket_id = 'BUIC-2026-99999';
-
--- 4. Delete a participant row manually
-DELETE FROM registrations WHERE id = 1;
-
--- 5. Set or Update Admin Login Credentials Manually in Neon SQL Editor:
--- View current Web App Admin credentials
-SELECT * FROM admins;
-
--- Set a new Admin username & password manually
-INSERT INTO admins (username, password) VALUES ('superadmin', 'admin12345');
-
--- Change existing Admin password manually
-UPDATE admins SET password = 'new_secure_password' WHERE username = 'admin';</pre>
-      </div> -->
-
-      <!-- Book Registrations Section -->
-      <div class="section-header" style="margin: 60px 0 30px;">
-        <h2 class="section-title" style="font-size: 1.8rem;">বই রেজিস্ট্রেশন (Book Orders)</h2>
-        <p class="hero-subtitle" style="margin-top: 8px;">উসওয়াতুন হাসানাহ বই ক্রয়ের সকল রেজিস্ট্রেশন।</p>
-      </div>
-
-      <div class="admin-bar"
-        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom: 24px;">
-        <div class="card" style="padding:12px 20px;">
-          <span style="font-size:0.8rem; color:var(--text-muted);">Book Orders:</span>
-          <span id="book-total-count"
-            style="font-size:1.3rem; font-weight:800; color:var(--accent-gold); margin-left:8px;">0</span>
-        </div>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button id="sync-book-btn" class="btn btn-primary" style="padding:10px 20px; font-size:0.95rem;"
-            title="Quiz registrants who chose purchase but are missing from book orders">
-            🔄 Sync Purchases
-          </button>
-          <button id="export-book-btn" class="btn btn-gold" style="padding:10px 20px; font-size:0.95rem;">
-            📥 Book CSV Export
-          </button>
-          <button onclick="fetchBookOrders()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.95rem;">
-            🔄 Refresh Books
-          </button>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 24px;">
-        <input type="text" id="book-search-input" class="form-input"
-          placeholder="🔍 নাম, স্টুডেন্ট আইডি, হোয়াটসঅ্যাপ, bKash নম্বর দিয়ে খুঁজুন..."
-          style="padding: 14px 20px; font-size: 1rem;">
-      </div>
-
-      <div class="table-container" style="margin-bottom: 50px;">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>নাম</th>
-              <th>স্টুডেন্ট আইডি</th>
-              <th>জিসুইট ইমেইল</th>
-              <th>হোয়াটসঅ্যাপ</th>
-              <th>Participant</th>
-              <th>Amount</th>
-              <th>Payment</th>
-              <th>bKash Number</th>
-              <th>তারিখ</th>
-              <th style="text-align:center;">অ্যাকশন</th>
-            </tr>
-          </thead>
-          <tbody id="book-orders-tbody">
-            <tr>
-              <td colspan="11" style="text-align:center; padding:30px;">🔄 বই রেজিস্ট্রেশন লোড হচ্ছে...</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
 
     </div>

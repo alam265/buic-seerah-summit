@@ -1,8 +1,23 @@
 const { getAllParticipants } = require('../services/registrationService');
+const { getAllBookRegistrations } = require('../services/bookRegistrationService');
 const {
   getEmailConfigStatus,
   sendNotificationToAll
 } = require('../services/emailService');
+
+function mapBookRecipients(orders) {
+  return (orders || []).map((order) => ({
+    id: order.id,
+    fullName: order.fullName,
+    studentId: order.studentId,
+    gsuitEmail: order.gsuitEmail,
+    personalEmail: order.personalEmail,
+    whatsapp: order.whatsapp,
+    amountTk: order.amountTk,
+    paymentMethod: order.paymentMethod === 'bkash' ? 'bKash' : 'Cash',
+    isParticipant: order.isParticipant ? 'Yes' : 'No'
+  }));
+}
 
 async function handleEmailStatus(req, res) {
   res.json({
@@ -68,7 +83,65 @@ async function handleSendNotification(req, res) {
   }
 }
 
+async function handleSendBookNotification(req, res) {
+  try {
+    const status = getEmailConfigStatus();
+    if (!status.configured) {
+      return res.status(503).json({
+        success: false,
+        message: 'Email is not configured on the server. Add SMTP_* variables to .env.'
+      });
+    }
+
+    const { subject, message } = req.body || {};
+    if (!subject || !String(subject).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'ইমেইলের বিষয় (subject) দিতে হবে।'
+      });
+    }
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'ইমেইলের বার্তা (message) দিতে হবে।'
+      });
+    }
+
+    const data = await getAllBookRegistrations();
+    if (data.orders.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'কোনো বই রেজিস্ট্রেশন নেই।'
+      });
+    }
+
+    const result = await sendNotificationToAll(
+      mapBookRecipients(data.orders),
+      String(subject).trim(),
+      String(message).trim()
+    );
+
+    res.json({
+      success: true,
+      message: `${result.sent.length} জন বই ক্রেতাকে ইমেইল পাঠানো হয়েছে।`,
+      sentCount: result.sent.length,
+      failedCount: result.failed.length,
+      skippedCount: result.skipped.length,
+      sent: result.sent,
+      failed: result.failed,
+      skipped: result.skipped
+    });
+  } catch (err) {
+    console.error('Book Email Notification Error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'ইমেইল পাঠাতে সমস্যা হয়েছে: ' + err.message
+    });
+  }
+}
+
 module.exports = {
   handleEmailStatus,
-  handleSendNotification
+  handleSendNotification,
+  handleSendBookNotification
 };

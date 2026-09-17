@@ -29,12 +29,12 @@ async function handleBookConfig(req, res) {
 
 async function handleBookLookup(req, res) {
   try {
-    const { studentId, fullName, gsuitEmail, whatsapp } = req.body;
+    const { studentId, fullName, gsuitEmail, personalEmail, whatsapp } = req.body;
 
-    if (!studentId || !fullName || !gsuitEmail || !whatsapp) {
+    if (!studentId || !fullName || !gsuitEmail || !personalEmail || !whatsapp) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে স্টুডেন্ট আইডি, নাম, জিসুইট ইমেইল এবং হোয়াটসঅ্যাপ পূরণ করুন।'
+        message: 'অনুগ্রহ করে স্টুডেন্ট আইডি, নাম, জিসুইট ইমেইল, পার্সোনাল ইমেইল এবং হোয়াটসঅ্যাপ পূরণ করুন।'
       });
     }
 
@@ -74,12 +74,13 @@ async function handleBookRegister(req, res) {
       studentId,
       fullName,
       gsuitEmail,
+      personalEmail,
       whatsapp,
       paymentMethod,
       senderBkashNumber
     } = req.body;
 
-    if (!studentId || !fullName || !gsuitEmail || !whatsapp || !paymentMethod) {
+    if (!studentId || !fullName || !gsuitEmail || !personalEmail || !whatsapp || !paymentMethod) {
       return res.status(400).json({
         success: false,
         message: 'অনুগ্রহ করে সকল প্রয়োজনীয় ঘর সঠিকভাবে পূরণ করুন।'
@@ -105,6 +106,7 @@ async function handleBookRegister(req, res) {
       studentId,
       fullName,
       gsuitEmail,
+      personalEmail,
       whatsapp,
       paymentMethod: method,
       senderBkashNumber

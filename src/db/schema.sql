@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS book_registrations (
     student_id VARCHAR(50) UNIQUE NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     gsuit_email VARCHAR(100) NOT NULL,
+    personal_email VARCHAR(100) NOT NULL DEFAULT '',
     whatsapp VARCHAR(20) NOT NULL,
     is_participant BOOLEAN NOT NULL DEFAULT FALSE,
     amount_tk INTEGER NOT NULL,
@@ -81,3 +82,4 @@ ALTER TABLE registrations DROP COLUMN IF EXISTS seerah_read_before;
 ALTER TABLE registrations DROP COLUMN IF EXISTS engagement_suggestions;
 ALTER TABLE registrations DROP COLUMN IF EXISTS programme_expectation;
 ALTER TABLE registrations DROP COLUMN IF EXISTS invitation_source;
+ALTER TABLE book_registrations ADD COLUMN IF NOT EXISTS personal_email VARCHAR(100) NOT NULL DEFAULT '';

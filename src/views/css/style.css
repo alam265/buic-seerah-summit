@@ -1460,6 +1460,101 @@ body {
   color: var(--text-heading);
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 auto 28px;
+  padding: 6px;
+  width: fit-content;
+  max-width: 100%;
+  background: rgba(15, 19, 42, 0.85);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+}
+
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-tab:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-tab.is-active {
+  color: var(--text-heading);
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.12);
+}
+
+.admin-tab-count {
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.admin-tab.is-active .admin-tab-count {
+  background: rgba(232, 121, 249, 0.2);
+  color: var(--accent-gold);
+}
+
+.admin-tab-panel[hidden] {
+  display: none;
+}
+
+.admin-gender-filter {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(15, 19, 42, 0.85);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.admin-filter-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.admin-filter-btn:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-filter-btn.is-active {
+  color: var(--text-heading);
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2394,6 +2489,13 @@ select.form-select-scrollable.is-expanded option {
   .admin-bar {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .admin-tabs {
+    width: 100%;
+  }
+  .admin-tab {
+    flex: 1;
+    justify-content: center;
   }
 }
 

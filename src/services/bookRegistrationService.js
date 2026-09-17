@@ -7,12 +7,84 @@ const REGULAR_PRICE = 220;
 const localBookRegistrations = [];
 let localBookIdSeq = 1;
 
+function sanitizePersonalEmail(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || trimmed.toUpperCase() === 'N/A') return '';
+  return trimmed;
+}
+
+const REGISTRATION_PERSONAL_EMAIL_SQL = `
+  SELECT personal_email
+  FROM registrations
+  WHERE personal_email IS NOT NULL
+    AND TRIM(personal_email) <> ''
+    AND UPPER(TRIM(personal_email)) <> 'N/A'
+    AND (
+      LOWER(TRIM(student_id)) = LOWER(TRIM($1))
+      OR (
+        $2 <> ''
+        AND LOWER(TRIM(gsuit_email)) = LOWER(TRIM($2))
+      )
+    )
+  ORDER BY
+    CASE WHEN LOWER(TRIM(student_id)) = LOWER(TRIM($1)) THEN 0 ELSE 1 END,
+    created_at DESC
+  LIMIT 1
+`;
+
+async function lookupRegistrationPersonalEmail(pool, studentId, gsuitEmail) {
+  const result = await pool.query(REGISTRATION_PERSONAL_EMAIL_SQL, [
+    String(studentId || '').trim(),
+    String(gsuitEmail || '').trim()
+  ]);
+  if (result.rows.length === 0) return '';
+  return sanitizePersonalEmail(result.rows[0].personal_email);
+}
+
+async function backfillBookPersonalEmails(pool) {
+  await pool.query(`
+    UPDATE book_registrations b
+    SET personal_email = src.personal_email
+    FROM (
+      SELECT DISTINCT ON (b2.id)
+        b2.id,
+        r.personal_email
+      FROM book_registrations b2
+      INNER JOIN registrations r
+        ON (
+          LOWER(TRIM(r.student_id)) = LOWER(TRIM(b2.student_id))
+          OR (
+            TRIM(b2.gsuit_email) <> ''
+            AND LOWER(TRIM(r.gsuit_email)) = LOWER(TRIM(b2.gsuit_email))
+          )
+        )
+      WHERE (b2.personal_email IS NULL OR TRIM(b2.personal_email) = '')
+        AND r.personal_email IS NOT NULL
+        AND TRIM(r.personal_email) <> ''
+        AND UPPER(TRIM(r.personal_email)) <> 'N/A'
+      ORDER BY
+        b2.id,
+        CASE WHEN LOWER(TRIM(r.student_id)) = LOWER(TRIM(b2.student_id)) THEN 0 ELSE 1 END,
+        r.created_at DESC
+    ) src
+    WHERE b.id = src.id
+  `);
+}
+
+function sanitizeGender(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || trimmed.toUpperCase() === 'N/A') return '';
+  return trimmed;
+}
+
 function mapBookRow(row) {
   return {
     id: row.id,
     studentId: row.student_id,
     fullName: row.full_name,
     gsuitEmail: row.gsuit_email,
+    personalEmail: sanitizePersonalEmail(row.personal_email),
+    gender: sanitizeGender(row.gender),
     whatsapp: row.whatsapp,
     isParticipant: Boolean(row.is_participant),
     amountTk: row.amount_tk,
@@ -58,6 +130,7 @@ async function createBookRegistration({
   fullName,
   studentId,
   gsuitEmail,
+  personalEmail,
   whatsapp,
   paymentMethod,
   senderBkashNumber
@@ -65,6 +138,7 @@ async function createBookRegistration({
   const cleanStudentId = String(studentId || '').trim();
   const cleanFullName = String(fullName || '').trim();
   const cleanGsuitEmail = String(gsuitEmail || '').trim();
+  let cleanPersonalEmail = sanitizePersonalEmail(personalEmail);
   const cleanWhatsapp = String(whatsapp || '').trim();
   const cleanPaymentMethod = String(paymentMethod || '').trim().toLowerCase();
   const cleanSenderBkash = cleanPaymentMethod === 'bkash'
@@ -88,18 +162,27 @@ async function createBookRegistration({
   }
 
   if (isNeonConnected && pool) {
+    if (!cleanPersonalEmail) {
+      cleanPersonalEmail = await lookupRegistrationPersonalEmail(
+        pool,
+        cleanStudentId,
+        cleanGsuitEmail
+      );
+    }
+
     const insertQuery = `
       INSERT INTO book_registrations (
-        student_id, full_name, gsuit_email, whatsapp,
+        student_id, full_name, gsuit_email, personal_email, whatsapp,
         is_participant, amount_tk, payment_method, txn_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
     `;
     const values = [
       cleanStudentId,
       cleanFullName,
       cleanGsuitEmail,
+      cleanPersonalEmail,
       cleanWhatsapp,
       isParticipant,
       amountTk,
@@ -123,6 +206,8 @@ async function createBookRegistration({
     amountTk,
     paymentMethod: cleanPaymentMethod,
     senderBkashNumber: cleanSenderBkash,
+    personalEmail: cleanPersonalEmail,
+    gender: '',
     createdAt: new Date().toISOString()
   };
   localBookRegistrations.push(newReg);
@@ -137,7 +222,44 @@ async function getAllBookRegistrations() {
   const { isNeonConnected, pool, dbError } = await getDbContext();
 
   if (isNeonConnected && pool) {
-    const result = await pool.query('SELECT * FROM book_registrations ORDER BY id DESC');
+    await backfillBookPersonalEmails(pool);
+
+    const result = await pool.query(`
+      SELECT
+        b.id,
+        b.student_id,
+        b.full_name,
+        b.gsuit_email,
+        b.whatsapp,
+        b.is_participant,
+        b.amount_tk,
+        b.payment_method,
+        b.txn_id,
+        b.created_at,
+        COALESCE(
+          NULLIF(TRIM(b.personal_email), ''),
+          NULLIF(TRIM(r.personal_email), ''),
+          ''
+        ) AS personal_email,
+        COALESCE(NULLIF(TRIM(r.gender), ''), '') AS gender
+      FROM book_registrations b
+      LEFT JOIN LATERAL (
+        SELECT personal_email, gender
+        FROM registrations
+        WHERE (
+            LOWER(TRIM(student_id)) = LOWER(TRIM(b.student_id))
+            OR (
+              TRIM(b.gsuit_email) <> ''
+              AND LOWER(TRIM(gsuit_email)) = LOWER(TRIM(b.gsuit_email))
+            )
+          )
+        ORDER BY
+          CASE WHEN LOWER(TRIM(student_id)) = LOWER(TRIM(b.student_id)) THEN 0 ELSE 1 END,
+          created_at DESC
+        LIMIT 1
+      ) r ON TRUE
+      ORDER BY b.id DESC
+    `);
     const formatted = result.rows.map(mapBookRow);
     return {
       count: formatted.length,
@@ -198,6 +320,7 @@ async function syncPurchaseIntentsToBook() {
         r.student_id,
         r.full_name,
         r.gsuit_email,
+        r.personal_email,
         r.whatsapp
       FROM registrations r
       WHERE r.uswatun_hasanah_participation = $1
@@ -216,10 +339,10 @@ async function syncPurchaseIntentsToBook() {
       const result = await client.query(
         `
         INSERT INTO book_registrations (
-          student_id, full_name, gsuit_email, whatsapp,
+          student_id, full_name, gsuit_email, personal_email, whatsapp,
           is_participant, amount_tk, payment_method, txn_id
         )
-        VALUES ($1, $2, $3, $4, TRUE, $5, 'cash', NULL)
+        VALUES ($1, $2, $3, $4, $5, TRUE, $6, 'cash', NULL)
         ON CONFLICT (student_id) DO NOTHING
         RETURNING *
         `,
@@ -227,6 +350,7 @@ async function syncPurchaseIntentsToBook() {
           row.student_id,
           row.full_name,
           row.gsuit_email,
+          sanitizePersonalEmail(row.personal_email),
           row.whatsapp,
           PARTICIPANT_PRICE
         ]

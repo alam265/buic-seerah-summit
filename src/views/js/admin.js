@@ -6,11 +6,15 @@ const COMPETITION_LABELS = {
   quiz: 'Quiz',
   seerah: 'Open Book'
 };
-const BOOK_COLSPAN = 11;
+const BOOK_COLSPAN = 13;
 const MAX_FETCH_RETRIES = 5;
 const FETCH_RETRY_BASE_MS = 2000;
 let participantsData = [];
 let bookOrdersData = [];
+const genderFilters = {
+  participants: '',
+  books: ''
+};
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,7 +24,89 @@ function shouldRetryFetch(response, result) {
   return response.status === 503 || result?.code === 'DB_NOT_READY' || result?.retryable === true;
 }
 
+const ADMIN_TABS = ['registrations', 'books'];
+const ADMIN_TAB_TITLES = {
+  registrations: 'নিবন্ধিত অংশগ্রহণকারীদের ডাটাবেজ',
+  books: 'বই রেজিস্ট্রেশন (Book Orders)'
+};
+
+function normalizeAdminTab(tabId) {
+  const value = String(tabId || '').toLowerCase();
+  if (value === 'books' || value === 'book' || value === 'book-registration') {
+    return 'books';
+  }
+  return 'registrations';
+}
+
+function getAdminTabFromHash() {
+  return normalizeAdminTab((window.location.hash || '').replace('#', ''));
+}
+
+function switchAdminTab(tabId, { updateHash = true } = {}) {
+  const tab = normalizeAdminTab(tabId);
+
+  document.querySelectorAll('.admin-tab').forEach((btn) => {
+    const selected = btn.dataset.tab === tab;
+    btn.classList.toggle('is-active', selected);
+    btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+    btn.tabIndex = selected ? 0 : -1;
+  });
+
+  document.querySelectorAll('.admin-tab-panel').forEach((panel) => {
+    const match = panel.id === `panel-${tab}`;
+    panel.hidden = !match;
+    panel.classList.toggle('is-active', match);
+  });
+
+  const titleEl = document.getElementById('admin-page-title');
+  if (titleEl) {
+    titleEl.textContent = ADMIN_TAB_TITLES[tab];
+  }
+
+  if (updateHash) {
+    const nextHash = `#${tab}`;
+    if (window.location.hash !== nextHash) {
+      history.replaceState(null, '', nextHash);
+    }
+  }
+}
+
+function initAdminTabs() {
+  const tabButtons = Array.from(document.querySelectorAll('.admin-tab'));
+  if (tabButtons.length === 0) return;
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => switchAdminTab(btn.dataset.tab));
+  });
+
+  const tablist = document.querySelector('.admin-tabs');
+  if (tablist) {
+    tablist.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      const current = normalizeAdminTab(getAdminTabFromHash());
+      const currentIndex = ADMIN_TABS.indexOf(current);
+      const delta = event.key === 'ArrowRight' ? 1 : -1;
+      const next = ADMIN_TABS[(currentIndex + delta + ADMIN_TABS.length) % ADMIN_TABS.length];
+      switchAdminTab(next);
+      document.getElementById(`tab-${next}`)?.focus();
+    });
+  }
+
+  window.addEventListener('hashchange', () => {
+    switchAdminTab(getAdminTabFromHash(), { updateHash: false });
+  });
+
+  switchAdminTab(getAdminTabFromHash());
+}
+
+function updateTabCount(id, count) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = String(count ?? 0);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initAdminTabs();
   fetchParticipants();
   fetchBookOrders();
   checkEmailStatus();
@@ -39,6 +125,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (competitionFilter) {
     competitionFilter.addEventListener('change', filterParticipants);
   }
+
+  document.querySelectorAll('.admin-filter-btn[data-gender-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.genderTarget;
+      const value = btn.dataset.genderFilter;
+      genderFilters[target] = genderFilters[target] === value ? '' : value;
+      document.querySelectorAll(`.admin-filter-btn[data-gender-target="${target}"]`).forEach((item) => {
+        item.classList.toggle('is-active', item.dataset.genderFilter === genderFilters[target]);
+      });
+      if (target === 'books') {
+        filterBookOrders();
+      } else {
+        filterParticipants();
+      }
+    });
+  });
 
   const bookSearchInput = document.getElementById('book-search-input');
   if (bookSearchInput) {
@@ -62,7 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const notifyEmailBtn = document.getElementById('notify-email-btn');
   if (notifyEmailBtn) {
-    notifyEmailBtn.addEventListener('click', openNotifyModal);
+    notifyEmailBtn.addEventListener('click', () => openNotifyModal('participants'));
+  }
+
+  const notifyBookEmailBtn = document.getElementById('notify-book-email-btn');
+  if (notifyBookEmailBtn) {
+    notifyBookEmailBtn.addEventListener('click', () => openNotifyModal('book'));
   }
 
   const notifyForm = document.getElementById('notify-form');
@@ -129,7 +236,8 @@ async function fetchParticipants(retryCount = 0) {
       if (quizCountEl) quizCountEl.innerText = `${quizCount} জন`;
       if (openBookCountEl) openBookCountEl.innerText = `${openBookCount} জন`;
       if (storageBadge) storageBadge.innerText = result.storageType || '';
-      renderTable(participantsData);
+      updateTabCount('tab-registrations-count', uniqueCount);
+      filterParticipants();
     } else {
       tbody.innerHTML = `<tr><td colspan="${COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
     }
@@ -277,15 +385,26 @@ async function deleteParticipantItem(id, name) {
   }
 }
 
+function normalizeGender(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function matchesGenderFilter(gender, filter) {
+  if (!filter) return true;
+  return normalizeGender(gender) === filter;
+}
+
 function filterParticipants() {
   const searchInput = document.getElementById('search-input');
   const competitionFilter = document.getElementById('competition-filter');
   const query = (searchInput?.value || '').toLowerCase().trim();
   const competition = competitionFilter?.value || '';
+  const gender = genderFilters.participants;
 
   const filtered = participantsData.filter(item => {
     const matchesCompetition = !competition || item.competition === competition;
     if (!matchesCompetition) return false;
+    if (!matchesGenderFilter(item.gender, gender)) return false;
 
     if (!query) return true;
 
@@ -348,6 +467,30 @@ function exportToCSV() {
 }
 
 let emailConfigured = false;
+let notifyAudience = 'participants';
+
+const NOTIFY_COPY = {
+  participants: {
+    title: '📧 সব অংশগ্রহণকারীকে ইমেইল পাঠান',
+    subjectPlaceholder: 'BUIC Seerah Competition — Important Update',
+    hint: 'Placeholders: {{fullName}}, {{ticketId}}, {{studentId}}, {{department}}, {{semester}}',
+    emptyMessage: 'কোনো অংশগ্রহণকারী নেই — ইমেইল পাঠানো যাবে না!',
+    endpoint: '/api/notifications/email/send'
+  },
+  book: {
+    title: '📧 বই ক্রেতাদের ইমেইল পাঠান',
+    subjectPlaceholder: 'Uswatun Hasanah — Book Collection Update',
+    hint: 'Placeholders: {{fullName}}, {{studentId}}, {{amountTk}}, {{paymentMethod}}, {{gsuitEmail}}',
+    emptyMessage: 'কোনো বই রেজিস্ট্রেশন নেই — ইমেইল পাঠানো যাবে না!',
+    endpoint: '/api/notifications/email/send-book'
+  }
+};
+
+function applySmtpButtonHint(button) {
+  if (button && !emailConfigured) {
+    button.title = 'SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS in .env (local) or Vercel Environment Variables (production).';
+  }
+}
 
 async function checkEmailStatus() {
   try {
@@ -360,26 +503,35 @@ async function checkEmailStatus() {
     const result = await response.json();
     emailConfigured = Boolean(result.success && result.configured);
 
-    const notifyBtn = document.getElementById('notify-email-btn');
-    if (notifyBtn && !emailConfigured) {
-      notifyBtn.title = 'SMTP not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS in .env (local) or Vercel Environment Variables (production).';
-    }
+    applySmtpButtonHint(document.getElementById('notify-email-btn'));
+    applySmtpButtonHint(document.getElementById('notify-book-email-btn'));
   } catch (err) {
     console.error('Email status check failed:', err);
     emailConfigured = false;
   }
 }
 
-function openNotifyModal() {
+function openNotifyModal(audience) {
   if (!emailConfigured) {
     showToast('SMTP সেটআপ নেই। লোকালে .env-এ বা Vercel Dashboard → Settings → Environment Variables-এ SMTP_HOST, SMTP_USER, SMTP_PASS যোগ করুন।', 'error');
     return;
   }
 
-  if (participantsData.length === 0) {
-    showToast('কোনো অংশগ্রহণকারী নেই — ইমেইল পাঠানো যাবে না!', 'error');
+  notifyAudience = audience === 'book' ? 'book' : 'participants';
+  const copy = NOTIFY_COPY[notifyAudience];
+  const recipients = notifyAudience === 'book' ? bookOrdersData : participantsData;
+
+  if (recipients.length === 0) {
+    showToast(copy.emptyMessage, 'error');
     return;
   }
+
+  const titleEl = document.getElementById('notify-modal-title');
+  const subjectEl = document.getElementById('notify-subject');
+  const hintEl = document.getElementById('notify-placeholder-hint');
+  if (titleEl) titleEl.innerText = copy.title;
+  if (subjectEl) subjectEl.placeholder = copy.subjectPlaceholder;
+  if (hintEl) hintEl.innerText = copy.hint;
 
   document.getElementById('notify-modal').style.display = 'flex';
 }
@@ -395,12 +547,13 @@ async function handleNotifySubmit(e) {
   const message = document.getElementById('notify-message').value.trim();
   const submitBtn = document.getElementById('notify-submit-btn');
   const originalText = submitBtn.innerHTML;
+  const endpoint = NOTIFY_COPY[notifyAudience]?.endpoint || NOTIFY_COPY.participants.endpoint;
 
   try {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '⏳ ইমেইল পাঠানো হচ্ছে...';
 
-    const response = await fetch('/api/notifications/email/send', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subject, message })
@@ -463,7 +616,8 @@ async function fetchBookOrders(retryCount = 0) {
     if (result.success) {
       bookOrdersData = result.orders || [];
       if (countBadge) countBadge.innerText = String(result.count);
-      renderBookOrdersTable(bookOrdersData);
+      updateTabCount('tab-books-count', result.count);
+      filterBookOrders();
     } else {
       tbody.innerHTML = `<tr><td colspan="${BOOK_COLSPAN}" style="text-align:center; color:#ef4444; padding:30px;">❌ ${result.message}</td></tr>`;
     }
@@ -499,7 +653,9 @@ function renderBookOrdersTable(data) {
         <td style="font-weight:700;">${index + 1}</td>
         <td style="font-weight:600; color:var(--text-heading);">${escapeHtml(item.fullName)}</td>
         <td>${escapeHtml(item.studentId)}</td>
+        <td>${escapeHtml(item.gender || '—')}</td>
         <td style="word-break:break-all;">${escapeHtml(item.gsuitEmail)}</td>
+        <td style="word-break:break-all;">${escapeHtml(item.personalEmail || '—')}</td>
         <td>${escapeHtml(item.whatsapp)}</td>
         <td>${item.isParticipant ? 'Yes' : 'No'}</td>
         <td><strong>${item.amountTk} Tk</strong></td>
@@ -516,15 +672,23 @@ function renderBookOrdersTable(data) {
   }).join('');
 }
 
-function filterBookOrders(e) {
-  const query = e.target.value.toLowerCase().trim();
+function filterBookOrders() {
+  const searchInput = document.getElementById('book-search-input');
+  const query = (searchInput?.value || '').toLowerCase().trim();
+  const gender = genderFilters.books;
+
   const filtered = bookOrdersData.filter((item) => {
+    if (!matchesGenderFilter(item.gender, gender)) return false;
+    if (!query) return true;
+
     return (item.fullName || '').toLowerCase().includes(query) ||
       (item.studentId || '').toLowerCase().includes(query) ||
       (item.gsuitEmail || '').toLowerCase().includes(query) ||
+      (item.personalEmail || '').toLowerCase().includes(query) ||
       (item.whatsapp || '').toLowerCase().includes(query) ||
       (item.senderBkashNumber || '').toLowerCase().includes(query) ||
-      (item.paymentMethod || '').toLowerCase().includes(query);
+      (item.paymentMethod || '').toLowerCase().includes(query) ||
+      (item.gender || '').toLowerCase().includes(query);
   });
   renderBookOrdersTable(filtered);
 }
@@ -596,14 +760,16 @@ function exportBookOrdersToCSV() {
   }
 
   const headers = [
-    'ID', 'Full Name', 'Student ID', 'Gsuit Email', 'WhatsApp',
+    'ID', 'Full Name', 'Student ID', 'Gender', 'Gsuit Email', 'Personal Email', 'WhatsApp',
     'Is Participant', 'Amount Tk', 'Payment Method', 'bKash Number', 'Created At'
   ];
   const rows = bookOrdersData.map((p) => [
     p.id,
     `"${p.fullName}"`,
     `"${p.studentId}"`,
+    `"${p.gender || ''}"`,
     `"${p.gsuitEmail}"`,
+    `"${p.personalEmail || ''}"`,
     `"${p.whatsapp}"`,
     p.isParticipant ? 'Yes' : 'No',
     p.amountTk,

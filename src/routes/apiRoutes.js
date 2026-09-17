@@ -12,7 +12,7 @@ const {
 } = require('../controllers/bookRegistrationController');
 const { handleHealthCheck } = require('../controllers/healthController');
 const { handleAdminLogin, handleAdminLogout, handleGetAdminStatus } = require('../controllers/authController');
-const { handleEmailStatus, handleSendNotification } = require('../controllers/notificationController');
+const { handleEmailStatus, handleSendNotification, handleSendBookNotification } = require('../controllers/notificationController');
 const { requireAdminAuth } = require('../middlewares/authMiddleware');
 
 // Public API Routes
@@ -36,5 +36,6 @@ router.delete('/book-orders/:id', requireAdminAuth, handleDeleteBookOrder);
 router.post('/book-orders/sync-purchases', requireAdminAuth, handleSyncPurchaseToBook);
 router.get('/notifications/email/status', requireAdminAuth, handleEmailStatus);
 router.post('/notifications/email/send', requireAdminAuth, handleSendNotification);
+router.post('/notifications/email/send-book', requireAdminAuth, handleSendBookNotification);
 
 module.exports = router;

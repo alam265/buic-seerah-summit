@@ -1,6 +1,17 @@
 const nodemailer = require('nodemailer');
 
-const PLACEHOLDERS = ['fullName', 'ticketId', 'studentId', 'department', 'semester'];
+const PLACEHOLDERS = [
+  'fullName',
+  'ticketId',
+  'studentId',
+  'department',
+  'semester',
+  'gsuitEmail',
+  'whatsapp',
+  'amountTk',
+  'paymentMethod',
+  'isParticipant'
+];
 
 function isEmailConfigured() {
   return Boolean(

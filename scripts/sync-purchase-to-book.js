@@ -48,6 +48,7 @@ async function main() {
         r.student_id,
         r.full_name,
         r.gsuit_email,
+        r.personal_email,
         r.whatsapp
       FROM registrations r
       WHERE r.uswatun_hasanah_participation = $1
@@ -73,14 +74,14 @@ async function main() {
       const result = await client.query(
         `
         INSERT INTO book_registrations (
-          student_id, full_name, gsuit_email, whatsapp,
+          student_id, full_name, gsuit_email, personal_email, whatsapp,
           is_participant, amount_tk, payment_method, txn_id
         )
-        VALUES ($1, $2, $3, $4, TRUE, 150, 'cash', NULL)
+        VALUES ($1, $2, $3, $4, $5, TRUE, 150, 'cash', NULL)
         ON CONFLICT (student_id) DO NOTHING
         RETURNING id, student_id
         `,
-        [row.student_id, row.full_name, row.gsuit_email, row.whatsapp]
+        [row.student_id, row.full_name, row.gsuit_email, row.personal_email || '', row.whatsapp]
       );
 
       if (result.rows.length > 0) {
