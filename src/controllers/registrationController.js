@@ -5,10 +5,13 @@ const {
   deleteParticipant,
   COMPETITION_TYPES
 } = require('../services/registrationService');
+const { findBookRegistrationByStudentId } = require('../services/bookRegistrationService');
 
+const USWATUN_PURCHASE_OPTION = 'Yes, I want to purchase Uswatun Hasanah, and participate';
+const USWATUN_ALREADY_HAVE_OPTION = 'I have this already and want to participate without purchasing it';
 const USWATUN_PARTICIPATION_OPTIONS = [
-  'Yes, I want to purchase Uswatun Hasanah, and participate',
-  'I have this already and want to participate without purchasing it'
+  USWATUN_PURCHASE_OPTION,
+  USWATUN_ALREADY_HAVE_OPTION
 ];
 
 function validateUswatunFields(body) {
@@ -61,10 +64,16 @@ async function handleRegister(req, res) {
       });
     }
 
-    if (cleanCompetition === 'quiz') {
-      const uswatunError = validateUswatunFields(req.body);
-      if (uswatunError) {
-        return res.status(400).json({ success: false, message: uswatunError });
+    const uswatunError = validateUswatunFields(req.body);
+    if (uswatunError) {
+      return res.status(400).json({ success: false, message: uswatunError });
+    }
+
+    let participationChoice = uswatunHasanahParticipation;
+    if (participationChoice === USWATUN_PURCHASE_OPTION) {
+      const existingBook = await findBookRegistrationByStudentId(studentId);
+      if (existingBook) {
+        participationChoice = USWATUN_ALREADY_HAVE_OPTION;
       }
     }
 
@@ -80,8 +89,8 @@ async function handleRegister(req, res) {
       personalEmail,
       gender,
       bkashTxnId,
-      uswatunHasanahRead: cleanCompetition === 'quiz' ? uswatunHasanahRead : null,
-      uswatunHasanahParticipation: cleanCompetition === 'quiz' ? uswatunHasanahParticipation : null
+      uswatunHasanahRead,
+      uswatunHasanahParticipation: participationChoice
     });
 
     const isNeon = storageType.includes('Neon');

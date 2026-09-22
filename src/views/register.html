@@ -131,14 +131,14 @@
               <input type="url" id="facebookLink" class="form-input" placeholder="https://facebook.com/your.profile" required>
             </div>
 
-            <div id="quiz-only-fields" class="quiz-only-fields">
+            <div id="uswatun-fields" class="uswatun-fields">
               <div class="form-group full-width">
                 <label class="form-label">
                   Have you read Uswatun Hasanah before? <span class="required">*</span>
                 </label>
                 <div class="radio-group inline">
                   <label class="radio-option">
-                    <input type="radio" name="uswatunHasanahRead" value="Yes" data-quiz-required>
+                    <input type="radio" name="uswatunHasanahRead" value="Yes" required>
                     <span>Yes</span>
                   </label>
                   <label class="radio-option">
@@ -149,21 +149,31 @@
               </div>
 
               <div class="form-group full-width">
-                <label class="form-label">
+                <label class="form-label" id="uswatun-participation-label"
+                  data-quiz-text="Do you want to participate in the competition with Uswatun Hasanah?"
+                  data-seerah-text="Do you want to purchase Uswatun Hasanah for this competition?">
                   Do you want to participate in the competition with Uswatun Hasanah? <span class="required">*</span>
                 </label>
                 <div class="radio-group">
-                  <label class="radio-option">
+                  <label class="radio-option" id="uswatun-purchase-option">
                     <input type="radio" name="uswatunHasanahParticipation"
-                      value="Yes, I want to purchase Uswatun Hasanah, and participate" data-quiz-required>
-                    <span>Yes, I want to purchase Uswatun Hasanah, and participate</span>
+                      id="uswatun-purchase-input"
+                      value="Yes, I want to purchase Uswatun Hasanah, and participate" required>
+                    <span id="uswatun-option-purchase"
+                      data-quiz-text="Yes, I want to purchase Uswatun Hasanah, and participate"
+                      data-seerah-text="Yes, I want to purchase Uswatun Hasanah">Yes, I want to purchase Uswatun Hasanah, and participate</span>
                   </label>
                   <label class="radio-option">
                     <input type="radio" name="uswatunHasanahParticipation"
                       value="I have this already and want to participate without purchasing it">
-                    <span>I have this already and want to participate without purchasing it</span>
+                    <span id="uswatun-option-have"
+                      data-quiz-text="I have this already and want to participate without purchasing it"
+                      data-seerah-text="I already have it, no need to purchase">I have this already and want to participate without purchasing it</span>
                   </label>
                 </div>
+                <p id="uswatun-purchase-locked-note" class="form-note form-note--locked" hidden>
+                  You have already registered for this book, so the purchase option is disabled.
+                </p>
                 <p class="form-note">
                   N.B: We encourage you to participate by purchasing the book as it has been taken special consideration
                   from its publisher to give our participants a decent discount.

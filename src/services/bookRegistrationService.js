@@ -121,7 +121,7 @@ async function findBookRegistrationByStudentId(studentId) {
 
   if (isNeonConnected && pool) {
     const result = await pool.query(
-      'SELECT * FROM book_registrations WHERE student_id = $1 LIMIT 1',
+      'SELECT * FROM book_registrations WHERE LOWER(TRIM(student_id)) = LOWER(TRIM($1)) LIMIT 1',
       [cleanId]
     );
     if (result.rows.length === 0) return null;

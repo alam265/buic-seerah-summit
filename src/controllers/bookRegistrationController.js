@@ -29,6 +29,30 @@ async function handleBookConfig(req, res) {
   }
 }
 
+async function handleBookStatus(req, res) {
+  try {
+    const studentId = String(req.query.studentId || req.body?.studentId || '').trim();
+    if (!studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'স্টুডেন্ট আইডি প্রয়োজন।'
+      });
+    }
+
+    const existing = await findBookRegistrationByStudentId(studentId);
+    return res.json({
+      success: true,
+      alreadyRegistered: Boolean(existing)
+    });
+  } catch (err) {
+    console.error('Book status error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'স্ট্যাটাস দেখতে সমস্যা হয়েছে: ' + err.message
+    });
+  }
+}
+
 async function handleBookLookup(req, res) {
   try {
     const { studentId, fullName, gsuitEmail, personalEmail, whatsapp } = req.body;
@@ -251,6 +275,7 @@ async function handleSyncPurchaseToBook(req, res) {
 
 module.exports = {
   handleBookConfig,
+  handleBookStatus,
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,

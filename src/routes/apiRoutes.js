@@ -4,6 +4,7 @@ const router = express.Router();
 const { handleRegister, handleGetParticipants, handleUpdateParticipant, handleDeleteParticipant } = require('../controllers/registrationController');
 const {
   handleBookConfig,
+  handleBookStatus,
   handleBookLookup,
   handleBookRegister,
   handleGetBookOrders,
@@ -20,6 +21,7 @@ const { requireAdminAuth } = require('../middlewares/authMiddleware');
 router.get('/health', handleHealthCheck);
 router.post('/register', handleRegister);
 router.get('/book-register/config', handleBookConfig);
+router.get('/book-register/status', handleBookStatus);
 router.post('/book-register/lookup', handleBookLookup);
 router.post('/book-register', handleBookRegister);
 

@@ -1571,6 +1571,10 @@ body {
   grid-column: 1 / -1;
 }
 
+.uswatun-fields {
+  display: contents;
+}
+
 .form-section-divider {
   grid-column: 1 / -1;
   margin-top: 12px;
