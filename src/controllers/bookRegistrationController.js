@@ -8,6 +8,7 @@ const {
   syncPurchaseIntentsToBook,
   HANDOVER_STATUSES
 } = require('../services/bookRegistrationService');
+const { hasCompetitionRegistration } = require('../services/registrationService');
 
 const PAYMENT_METHODS = ['cash', 'bkash'];
 
@@ -138,11 +139,16 @@ async function handleBookRegister(req, res) {
       senderBkashNumber
     });
 
+    const missingCompetitions = [];
+    if (!(await hasCompetitionRegistration(studentId, 'quiz'))) missingCompetitions.push('quiz');
+    if (!(await hasCompetitionRegistration(studentId, 'seerah'))) missingCompetitions.push('seerah');
+
     return res.status(201).json({
       success: true,
       message: 'বই রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!',
       registration,
-      storageType
+      storageType,
+      missingCompetitions
     });
   } catch (err) {
     if (err.code === 'DUPLICATE_BOOK_REGISTRATION' || err.message === 'DUPLICATE_BOOK_REGISTRATION') {

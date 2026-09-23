@@ -3,6 +3,7 @@ const {
   getAllParticipants,
   updateParticipant,
   deleteParticipant,
+  hasCompetitionRegistration,
   COMPETITION_TYPES
 } = require('../services/registrationService');
 const { findBookRegistrationByStudentId } = require('../services/bookRegistrationService');
@@ -94,6 +95,8 @@ async function handleRegister(req, res) {
     });
 
     const isNeon = storageType.includes('Neon');
+    const otherCompetition = cleanCompetition === 'quiz' ? 'seerah' : 'quiz';
+    const alreadyRegisteredOther = await hasCompetitionRegistration(studentId, otherCompetition);
 
     return res.status(201).json({
       success: true,
@@ -101,7 +104,9 @@ async function handleRegister(req, res) {
         ? 'অভিনন্দন! আপনার রেজিস্ট্রেশান সফলভাবে সম্পন্ন হয়েছে।'
         : 'রেজিস্ট্রেশান সফল হয়েছে।',
       registration,
-      storageType
+      storageType,
+      otherCompetition,
+      alreadyRegisteredOther
     });
   } catch (err) {
     console.error('Registration Controller Error:', err);

@@ -18,6 +18,8 @@ const COMPETITION_COPY = {
   }
 };
 
+let pendingCrossPromo = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('registration-form');
   if (!form) return;
@@ -30,9 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const initialCompetition = getInitialCompetition();
   setCompetitionTab(initialCompetition, { updateUrl: false });
+  prefillFromQuery();
 
   initScrollableSelect(document.getElementById('department'));
 });
+
+function prefillFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['fullName', 'studentId', 'semester', 'department', 'whatsapp', 'facebookLink', 'gsuitEmail', 'personalEmail', 'gender'];
+
+  fields.forEach((id) => {
+    const value = params.get(id);
+    const input = document.getElementById(id);
+    if (value && input) input.value = value;
+  });
+}
 
 function initScrollableSelect(select, maxVisible = 8) {
   if (!select) return;
@@ -87,6 +101,10 @@ function setCompetitionTab(competition, options = {}) {
     input.required = normalized === 'quiz';
   });
 
+  document.querySelectorAll('[data-quiz-text][data-seerah-text]').forEach((el) => {
+    el.textContent = normalized === 'seerah' ? el.dataset.seerahText : el.dataset.quizText;
+  });
+
   const badge = document.getElementById('registration-badge');
   const title = document.getElementById('registration-title');
   const subtitle = document.getElementById('registration-subtitle');
@@ -129,8 +147,8 @@ async function handleRegistrationSubmit(e) {
     gsuitEmail: document.getElementById('gsuitEmail').value.trim(),
     personalEmail: document.getElementById('personalEmail').value.trim(),
     gender: document.getElementById('gender').value,
-    uswatunHasanahRead: isQuiz ? uswatunHasanahRead : null,
-    uswatunHasanahParticipation: isQuiz ? uswatunHasanahParticipation : null
+    uswatunHasanahRead,
+    uswatunHasanahParticipation
   };
 
   if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.facebookLink || !payload.gsuitEmail || !payload.personalEmail || !payload.gender) {
@@ -138,7 +156,7 @@ async function handleRegistrationSubmit(e) {
     return;
   }
 
-  if (isQuiz && (!payload.uswatunHasanahRead || !payload.uswatunHasanahParticipation)) {
+  if (!payload.uswatunHasanahRead || !payload.uswatunHasanahParticipation) {
     showToast('অনুগ্রহ করে Uswatun Hasanah সম্পর্কিত সকল প্রয়োজনীয় প্রশ্নের উত্তর দিন।', 'error');
     return;
   }
@@ -175,6 +193,23 @@ async function handleRegistrationSubmit(e) {
         window.location.href = `/book-register?${params.toString()}`;
         return;
       }
+
+      pendingCrossPromo = result.alreadyRegisteredOther
+        ? null
+        : {
+            competition: result.otherCompetition,
+            prefill: {
+              fullName: payload.fullName,
+              studentId: payload.studentId,
+              semester: payload.semester,
+              department: payload.department,
+              whatsapp: payload.whatsapp,
+              facebookLink: payload.facebookLink,
+              gsuitEmail: payload.gsuitEmail,
+              personalEmail: payload.personalEmail,
+              gender: payload.gender
+            }
+          };
 
       form.reset();
       setCompetitionTab(competition, { updateUrl: false });
@@ -280,6 +315,66 @@ function showTicketModal(reg, storageType) {
 
 function closeTicketModal() {
   const modal = document.getElementById('ticket-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+
+  if (pendingCrossPromo) {
+    const promo = pendingCrossPromo;
+    pendingCrossPromo = null;
+    setTimeout(() => showCrossPromoModal(promo), 300);
+  }
+}
+
+const CROSS_PROMO_COPY = {
+  quiz: {
+    emoji: '🏆',
+    message: 'আপনি কি Seerah Quiz Competition-এও রেজিস্ট্রেশন করতে চান?'
+  },
+  seerah: {
+    emoji: '📖',
+    message: 'আপনি কি Seerah Open Book Competition-এও রেজিস্ট্রেশন করতে চান?'
+  }
+};
+
+function showCrossPromoModal({ competition, prefill }) {
+  let modal = document.getElementById('cross-promo-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'cross-promo-modal';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  const label = COMPETITION_LABELS[competition] || competition;
+  const copy = CROSS_PROMO_COPY[competition] || { emoji: '🎉', message: `আপনি কি ${label}-এও রেজিস্ট্রেশন করতে চান?` };
+  const registerUrl = `/register?competition=${encodeURIComponent(competition)}&${new URLSearchParams(prefill).toString()}`;
+
+  modal.innerHTML = `
+    <div class="ticket-card" style="max-width:420px;">
+      <div class="ticket-header">
+        <div style="font-size:2rem;">${copy.emoji}</div>
+        <div class="ticket-badge-title">${label}</div>
+      </div>
+
+      <p style="margin-bottom:24px; color:var(--text-muted);">${copy.message}</p>
+
+      <div class="ticket-actions">
+        <a href="${registerUrl}" class="btn btn-primary" style="padding:10px 20px; font-size:0.9rem;">
+          হ্যাঁ, রেজিস্টার করি
+        </a>
+        <button onclick="closeCrossPromoModal()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.9rem;">
+          না, ধন্যবাদ
+        </button>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => modal.classList.add('active'), 50);
+}
+
+function closeCrossPromoModal() {
+  const modal = document.getElementById('cross-promo-modal');
   if (modal) {
     modal.classList.remove('active');
   }

@@ -261,6 +261,7 @@ async function handleBookSubmit(e) {
 
     showToast(result.message, 'success');
     showSuccess(result.registration);
+    showCompetitionPromo(result.missingCompetitions);
   } catch (err) {
     console.error(err);
     showToast('সার্ভারের সাথে সংযোগে সমস্যা হয়েছে।', 'error');
@@ -286,6 +287,76 @@ function showSuccess(reg) {
   `;
 }
 
+
+const COMPETITION_LABELS = {
+  quiz: 'Seerah Quiz Competition',
+  seerah: 'Seerah Open Book Competition'
+};
+
+const COMPETITION_EMOJI = {
+  quiz: '🏆',
+  seerah: '📖'
+};
+
+function competitionRegisterUrl(competition) {
+  const params = new URLSearchParams({
+    studentId: formState.studentId,
+    fullName: formState.fullName,
+    gsuitEmail: formState.gsuitEmail,
+    personalEmail: formState.personalEmail,
+    whatsapp: formState.whatsapp
+  });
+  return `/register?competition=${encodeURIComponent(competition)}&${params.toString()}`;
+}
+
+function showCompetitionPromo(missingCompetitions) {
+  if (!Array.isArray(missingCompetitions) || missingCompetitions.length === 0) return;
+
+  let modal = document.getElementById('competition-promo-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'competition-promo-modal';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  const buttonsHtml = missingCompetitions.map((competition) => `
+    <a href="${competitionRegisterUrl(competition)}" class="btn btn-primary" style="padding:10px 20px; font-size:0.9rem;">
+      ${COMPETITION_EMOJI[competition] || '🎉'} ${COMPETITION_LABELS[competition] || competition}
+    </a>
+  `).join('');
+
+  const message = missingCompetitions.length === 2
+    ? 'আপনি কি Quiz অথবা Open Book প্রতিযোগিতায় রেজিস্ট্রেশন করতে চান?'
+    : `আপনি কি ${COMPETITION_LABELS[missingCompetitions[0]] || missingCompetitions[0]}-এও রেজিস্ট্রেশন করতে চান?`;
+
+  modal.innerHTML = `
+    <div class="ticket-card" style="max-width:420px;">
+      <div class="ticket-header">
+        <div style="font-size:2rem;">🎉</div>
+        <div class="ticket-badge-title">বই রেজিস্ট্রেশন সম্পন্ন!</div>
+      </div>
+
+      <p style="margin-bottom:24px; color:var(--text-muted);">${message}</p>
+
+      <div class="ticket-actions" style="flex-wrap:wrap;">
+        ${buttonsHtml}
+        <button onclick="closeCompetitionPromoModal()" class="btn btn-secondary" style="padding:10px 20px; font-size:0.9rem;">
+          না, ধন্যবাদ
+        </button>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => modal.classList.add('active'), 50);
+}
+
+function closeCompetitionPromoModal() {
+  const modal = document.getElementById('competition-promo-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
 
 function escapeHtml(str) {
   if (!str) return '';

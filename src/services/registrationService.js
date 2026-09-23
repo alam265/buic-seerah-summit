@@ -190,6 +190,26 @@ async function getAllParticipants() {
   };
 }
 
+async function hasCompetitionRegistration(studentId, competition) {
+  const cleanId = String(studentId || '').trim();
+  if (!cleanId) return false;
+
+  const { isNeonConnected, pool } = await getDbContext();
+
+  if (isNeonConnected && pool) {
+    const result = await pool.query(
+      'SELECT 1 FROM registrations WHERE student_id = $1 AND competition = $2 LIMIT 1',
+      [cleanId, competition]
+    );
+    return result.rows.length > 0;
+  }
+
+  return localRegistrations.some(
+    (r) => String(r.studentId).toLowerCase() === cleanId.toLowerCase()
+      && r.competition === competition
+  );
+}
+
 async function isCompetitionParticipant(studentId) {
   const cleanId = String(studentId || '').trim();
   if (!cleanId) return false;
@@ -349,6 +369,7 @@ module.exports = {
   getRegistrationsCount,
   getRegistrationSummary,
   isCompetitionParticipant,
+  hasCompetitionRegistration,
   updateParticipant,
   deleteParticipant
 };
