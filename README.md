@@ -6,12 +6,12 @@ Registration and event portal for **BRACUian Seerah Summit 1448**, organized by 
 
 ## Features
 
-- **Competition registration** — online signup with ticket ID, student details, and bKash payment reference
-- **Book registration** — purchase flow for *উসওয়াতুন হাসানাহ* (৳150 for quiz participants, ৳220 otherwise), with participant lookup and public bKash number
+- **Competition registration** — online signup with ticket ID, student details, and bKash payment reference; prompts students who haven't registered for a competition yet
+- **Book registration** — purchase flow for *উসওয়াতুন হাসানাহ* (৳150 for quiz participants, ৳220 otherwise), with participant lookup, duplicate-registration check by student ID, and public bKash number
 - **Event pages** — Seerah Quiz Competition, Open Book Competition, and Grand Seerah Seminar
-- **Admin dashboard** — JWT-protected panel to view, edit, delete registrations; manage book orders; export CSV; send bulk email to competition registrants
+- **Admin dashboard** — JWT-protected panel with separate Registration and Book Registration tabs; search and filter (by competition, gender, participant status, payment method, handover status); view, edit, delete registrations; manage book handover status; sync missed purchase intents into book orders; export CSV; send bulk email to competition registrants or book buyers
 - **Neon PostgreSQL** — schema and indexes created automatically on startup
-- **Optional SMTP** — bulk notifications to competition registrants (supports `{{fullName}}`, `{{ticketId}}`, etc. in templates)
+- **Optional SMTP** — bulk notifications to competition registrants or book buyers (supports template placeholders like `{{fullName}}`, `{{ticketId}}`, `{{amountTk}}`, etc.)
 
 ## Tech stack
 
@@ -124,6 +124,7 @@ The production site is hosted on [Vercel](https://vercel.com/) at [https://seera
 | `/about` | About BUIC / the summit |
 | `/contact` | Contact & FAQ (client-side form only — no backend API) |
 | `/register` | Competition registration |
+| `/register/seerah` | Redirects to `/register?competition=seerah` |
 | `/book-register` | Book purchase registration |
 | `/events/quiz` | Seerah Quiz Competition details |
 | `/events/open-book` | Open Book Competition details |
@@ -142,6 +143,7 @@ Admin-protected routes accept the `admin_token` HTTP-only cookie (set on login) 
 | `GET` | `/api/health` | Health / DB status, registration count, auth mode |
 | `POST` | `/api/register` | Submit competition registration |
 | `GET` | `/api/book-register/config` | Public book config (e.g. bKash number) |
+| `GET` | `/api/book-register/status` | Check whether a student ID already has a book order |
 | `POST` | `/api/book-register/lookup` | Look up participant by student ID (returns pricing) |
 | `POST` | `/api/book-register` | Submit book order |
 
@@ -161,16 +163,19 @@ Admin-protected routes accept the `admin_token` HTTP-only cookie (set on login) 
 | `PUT` | `/api/participants/:id` | Update a registration |
 | `DELETE` | `/api/participants/:id` | Delete a registration |
 | `GET` | `/api/book-orders` | List book orders |
+| `PATCH` | `/api/book-orders/:id/handover-status` | Update a book order's handover status (`pending`/`received`) |
 | `DELETE` | `/api/book-orders/:id` | Delete a book order |
+| `POST` | `/api/book-orders/sync-purchases` | Add quiz registrants who chose "purchase & participate" but are missing from book orders |
 | `GET` | `/api/notifications/email/status` | SMTP configuration status |
 | `POST` | `/api/notifications/email/send` | Send email to all competition registrants |
+| `POST` | `/api/notifications/email/send-book` | Send email to all book order buyers |
 
 ## Database
 
 Tables are created and migrated automatically when the server starts with a valid `DATABASE_URL`:
 
 - **`registrations`** — competition signups (unique `ticket_id`)
-- **`book_registrations`** — book orders (unique `student_id`)
+- **`book_registrations`** — book orders (unique `student_id`), including a `handover_status` (`pending`/`received`) tracked from the admin dashboard
 - **`admins`** — hashed admin credentials
 
 See `src/db/schema.sql` for the full reference schema.
