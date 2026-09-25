@@ -1566,6 +1566,104 @@ body {
   border-color: rgba(168, 85, 247, 0.45);
 }
 
+/* ── Centralized admin filter panel ── */
+.admin-filter-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-filter-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-filter-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.admin-filter-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(232, 121, 249, 0.18);
+  color: var(--accent-gold);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.admin-filter-count[hidden] {
+  display: none;
+}
+
+.admin-filter-clear-btn {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-filter-clear-btn:hover:not(:disabled) {
+  color: var(--text-heading);
+  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.admin-filter-clear-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.admin-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-filter-field-search {
+  grid-column: 1 / -1;
+}
+
+.admin-filter-field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.admin-filter-field .form-input {
+  padding: 12px 16px;
+  font-size: 0.92rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2891,6 +2989,18 @@ select.form-select-scrollable.is-expanded option {
     flex: 1;
     min-width: 0;
     justify-content: center;
+  }
+
+  /* ── Admin: filter panel stacks into one column ── */
+  .admin-filter-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-gender-filter {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .admin-gender-filter .admin-filter-btn {
+    flex: 1;
   }
 }
 

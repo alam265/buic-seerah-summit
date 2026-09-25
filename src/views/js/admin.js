@@ -16,6 +16,109 @@ const genderFilters = {
   books: ''
 };
 
+// Centralized filter configuration: every admin table's search box, dropdown
+// filters, gender toggle and "Clear Filters" button are declared once here
+// and driven by the shared applyAdminFilters()/clearAdminFilters() engine
+// below, instead of each table wiring up its own bespoke filter logic.
+const ADMIN_FILTER_SECTIONS = {
+  participants: {
+    searchInputId: 'search-input',
+    countId: 'participants-filter-count',
+    clearBtnId: 'clear-participants-filters',
+    genderTarget: 'participants',
+    getData: () => participantsData,
+    render: (rows) => renderTable(rows),
+    searchFields: ['fullName', 'ticketId', 'studentId', 'whatsapp', 'department', 'gsuitEmail', 'personalEmail', 'bkashTxnId', 'facebookLink'],
+    selects: [
+      { id: 'competition-filter', matches: (item, value) => item.competition === value }
+    ]
+  },
+  books: {
+    searchInputId: 'book-search-input',
+    countId: 'books-filter-count',
+    clearBtnId: 'clear-books-filters',
+    genderTarget: 'books',
+    getData: () => bookOrdersData,
+    render: (rows) => renderBookOrdersTable(rows),
+    searchFields: ['fullName', 'studentId', 'gsuitEmail', 'personalEmail', 'whatsapp', 'senderBkashNumber', 'paymentMethod', 'gender'],
+    selects: [
+      { id: 'book-participant-filter', matches: (item, value) => (item.isParticipant ? 'yes' : 'no') === value },
+      { id: 'book-payment-filter', matches: (item, value) => (item.paymentMethod || '') === value },
+      { id: 'book-handover-filter', matches: (item, value) => (item.handoverStatus || 'pending') === value }
+    ]
+  }
+};
+
+function getFieldValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function applyAdminFilters(sectionKey) {
+  const section = ADMIN_FILTER_SECTIONS[sectionKey];
+  if (!section) return;
+
+  const query = getFieldValue(section.searchInputId).toLowerCase().trim();
+  const gender = genderFilters[section.genderTarget];
+  const activeSelects = section.selects
+    .map((select) => ({ ...select, value: getFieldValue(select.id) }))
+    .filter((select) => select.value);
+
+  const filtered = section.getData().filter((item) => {
+    if (!matchesGenderFilter(item.gender, gender)) return false;
+    if (activeSelects.some((select) => !select.matches(item, select.value))) return false;
+    if (!query) return true;
+    return section.searchFields.some((field) => String(item[field] || '').toLowerCase().includes(query));
+  });
+
+  const activeCount = activeSelects.length + (gender ? 1 : 0) + (query ? 1 : 0);
+  const countEl = document.getElementById(section.countId);
+  if (countEl) {
+    countEl.textContent = String(activeCount);
+    countEl.hidden = activeCount === 0;
+  }
+  const clearBtn = document.getElementById(section.clearBtnId);
+  if (clearBtn) clearBtn.disabled = activeCount === 0;
+
+  section.render(filtered);
+}
+
+function clearAdminFilters(sectionKey) {
+  const section = ADMIN_FILTER_SECTIONS[sectionKey];
+  if (!section) return;
+
+  const searchInput = document.getElementById(section.searchInputId);
+  if (searchInput) searchInput.value = '';
+
+  section.selects.forEach((select) => {
+    const el = document.getElementById(select.id);
+    if (el) el.value = '';
+  });
+
+  genderFilters[section.genderTarget] = '';
+  document.querySelectorAll(`.admin-filter-btn[data-gender-target="${section.genderTarget}"]`).forEach((btn) => {
+    btn.classList.remove('is-active');
+  });
+
+  applyAdminFilters(sectionKey);
+}
+
+function initAdminFilterSection(sectionKey) {
+  const section = ADMIN_FILTER_SECTIONS[sectionKey];
+  if (!section) return;
+
+  const searchInput = document.getElementById(section.searchInputId);
+  if (searchInput) searchInput.addEventListener('input', () => applyAdminFilters(sectionKey));
+
+  section.selects.forEach((select) => {
+    const el = document.getElementById(select.id);
+    if (el) el.addEventListener('change', () => applyAdminFilters(sectionKey));
+  });
+
+  const clearBtn = document.getElementById(section.clearBtnId);
+  if (clearBtn) clearBtn.addEventListener('click', () => clearAdminFilters(sectionKey));
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -156,15 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', handleLogout);
   }
 
-  const searchInput = document.getElementById('search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', filterParticipants);
-  }
-
-  const competitionFilter = document.getElementById('competition-filter');
-  if (competitionFilter) {
-    competitionFilter.addEventListener('change', filterParticipants);
-  }
+  initAdminFilterSection('participants');
+  initAdminFilterSection('books');
 
   document.querySelectorAll('.admin-filter-btn[data-gender-filter]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -174,18 +270,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll(`.admin-filter-btn[data-gender-target="${target}"]`).forEach((item) => {
         item.classList.toggle('is-active', item.dataset.genderFilter === genderFilters[target]);
       });
-      if (target === 'books') {
-        filterBookOrders();
-      } else {
-        filterParticipants();
-      }
+      applyAdminFilters(target === 'books' ? 'books' : 'participants');
     });
   });
-
-  const bookSearchInput = document.getElementById('book-search-input');
-  if (bookSearchInput) {
-    bookSearchInput.addEventListener('input', filterBookOrders);
-  }
 
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) {
@@ -435,30 +522,7 @@ function matchesGenderFilter(gender, filter) {
 }
 
 function filterParticipants() {
-  const searchInput = document.getElementById('search-input');
-  const competitionFilter = document.getElementById('competition-filter');
-  const query = (searchInput?.value || '').toLowerCase().trim();
-  const competition = competitionFilter?.value || '';
-  const gender = genderFilters.participants;
-
-  const filtered = participantsData.filter(item => {
-    const matchesCompetition = !competition || item.competition === competition;
-    if (!matchesCompetition) return false;
-    if (!matchesGenderFilter(item.gender, gender)) return false;
-
-    if (!query) return true;
-
-    return item.fullName.toLowerCase().includes(query) ||
-           item.ticketId.toLowerCase().includes(query) ||
-           item.studentId.toLowerCase().includes(query) ||
-           item.whatsapp.toLowerCase().includes(query) ||
-           item.department.toLowerCase().includes(query) ||
-           item.gsuitEmail.toLowerCase().includes(query) ||
-           item.personalEmail.toLowerCase().includes(query) ||
-           item.bkashTxnId.toLowerCase().includes(query) ||
-           (item.facebookLink || '').toLowerCase().includes(query);
-  });
-  renderTable(filtered);
+  applyAdminFilters('participants');
 }
 
 function exportToCSV() {
@@ -777,24 +841,7 @@ async function updateBookHandoverStatus(id, handoverStatus, selectEl) {
 }
 
 function filterBookOrders() {
-  const searchInput = document.getElementById('book-search-input');
-  const query = (searchInput?.value || '').toLowerCase().trim();
-  const gender = genderFilters.books;
-
-  const filtered = bookOrdersData.filter((item) => {
-    if (!matchesGenderFilter(item.gender, gender)) return false;
-    if (!query) return true;
-
-    return (item.fullName || '').toLowerCase().includes(query) ||
-      (item.studentId || '').toLowerCase().includes(query) ||
-      (item.gsuitEmail || '').toLowerCase().includes(query) ||
-      (item.personalEmail || '').toLowerCase().includes(query) ||
-      (item.whatsapp || '').toLowerCase().includes(query) ||
-      (item.senderBkashNumber || '').toLowerCase().includes(query) ||
-      (item.paymentMethod || '').toLowerCase().includes(query) ||
-      (item.gender || '').toLowerCase().includes(query);
-  });
-  renderBookOrdersTable(filtered);
+  applyAdminFilters('books');
 }
 
 async function deleteBookOrderItem(id, name) {

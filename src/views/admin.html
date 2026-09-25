@@ -76,18 +76,35 @@
         </div>
 
         <!-- Search & Filter Bar -->
-        <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap;">
-          <input type="text" id="search-input" class="form-input"
-            placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন..."
-            style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
-          <select id="competition-filter" class="form-input" style="padding: 14px 20px; font-size: 1rem; min-width:200px;">
-            <option value="">All Competitions</option>
-            <option value="quiz">Quiz</option>
-            <option value="seerah">Open Book (Seerah)</option>
-          </select>
-          <div class="admin-gender-filter" role="group" aria-label="Filter by gender">
-            <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="participants">Male</button>
-            <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="participants">Female</button>
+        <div class="admin-filter-panel">
+          <div class="admin-filter-panel-head">
+            <h3 class="admin-filter-panel-title">
+              🔍 Search &amp; Filter
+              <span id="participants-filter-count" class="admin-filter-count" hidden>0</span>
+            </h3>
+            <button type="button" id="clear-participants-filters" class="admin-filter-clear-btn">Clear Filters</button>
+          </div>
+          <div class="admin-filter-grid">
+            <div class="admin-filter-field admin-filter-field-search">
+              <label for="search-input">Search</label>
+              <input type="text" id="search-input" class="form-input"
+                placeholder="🔍 নাম, টিকিট আইডি, ফোন নম্বর বা ডিপার্টমেন্ট দিয়ে খুঁজুন...">
+            </div>
+            <div class="admin-filter-field">
+              <label for="competition-filter">Competition</label>
+              <select id="competition-filter" class="form-input">
+                <option value="">All Competitions</option>
+                <option value="quiz">Quiz</option>
+                <option value="seerah">Open Book (Seerah)</option>
+              </select>
+            </div>
+            <div class="admin-filter-field">
+              <label>Gender</label>
+              <div class="admin-gender-filter" role="group" aria-label="Filter by gender">
+                <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="participants">Male</button>
+                <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="participants">Female</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -149,13 +166,51 @@
           </div>
         </div>
 
-        <div style="margin-bottom: 24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="book-search-input" class="form-input"
-            placeholder="🔍 নাম, স্টুডেন্ট আইডি, ইমেইল, হোয়াটসঅ্যাপ, bKash নম্বর দিয়ে খুঁজুন..."
-            style="padding: 14px 20px; font-size: 1rem; flex:1; min-width:240px;">
-          <div class="admin-gender-filter" role="group" aria-label="Filter book orders by gender">
-            <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="books">Male</button>
-            <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="books">Female</button>
+        <div class="admin-filter-panel">
+          <div class="admin-filter-panel-head">
+            <h3 class="admin-filter-panel-title">
+              🔍 Search &amp; Filter
+              <span id="books-filter-count" class="admin-filter-count" hidden>0</span>
+            </h3>
+            <button type="button" id="clear-books-filters" class="admin-filter-clear-btn">Clear Filters</button>
+          </div>
+          <div class="admin-filter-grid">
+            <div class="admin-filter-field admin-filter-field-search">
+              <label for="book-search-input">Search</label>
+              <input type="text" id="book-search-input" class="form-input"
+                placeholder="🔍 নাম, স্টুডেন্ট আইডি, ইমেইল, হোয়াটসঅ্যাপ, bKash নম্বর দিয়ে খুঁজুন...">
+            </div>
+            <div class="admin-filter-field">
+              <label for="book-participant-filter">Participant</label>
+              <select id="book-participant-filter" class="form-input">
+                <option value="">All</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div class="admin-filter-field">
+              <label for="book-payment-filter">Payment Method</label>
+              <select id="book-payment-filter" class="form-input">
+                <option value="">All Payments</option>
+                <option value="bkash">bKash</option>
+                <option value="cash">Cash</option>
+              </select>
+            </div>
+            <div class="admin-filter-field">
+              <label for="book-handover-filter">Handover Status</label>
+              <select id="book-handover-filter" class="form-input">
+                <option value="">All Handover</option>
+                <option value="pending">Pending</option>
+                <option value="received">Received</option>
+              </select>
+            </div>
+            <div class="admin-filter-field">
+              <label>Gender</label>
+              <div class="admin-gender-filter" role="group" aria-label="Filter book orders by gender">
+                <button type="button" class="admin-filter-btn" data-gender-filter="male" data-gender-target="books">Male</button>
+                <button type="button" class="admin-filter-btn" data-gender-filter="female" data-gender-target="books">Female</button>
+              </div>
+            </div>
           </div>
         </div>
 
