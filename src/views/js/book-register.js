@@ -68,7 +68,7 @@ async function handleLookupSubmit(e) {
   };
 
   if (!payload.studentId || !payload.fullName || !payload.gsuitEmail || !payload.personalEmail || !payload.whatsapp) {
-    showToast('অনুগ্রহ করে সকল ঘর পূরণ করুন।', 'error');
+    showToast('Please fill in all fields.', 'error');
     return;
   }
 
@@ -103,7 +103,7 @@ async function handleLookupSubmit(e) {
     showStep2(result);
   } catch (err) {
     console.error(err);
-    showToast('সার্ভারের সাথে সংযোগে সমস্যা হয়েছে।', 'error');
+    showToast('There was a problem connecting to the server.', 'error');
   } finally {
     btn.disabled = false;
     btn.innerHTML = original;
@@ -171,7 +171,7 @@ async function copyBkashNumber(e) {
 
   try {
     await navigator.clipboard.writeText(number);
-    showToast('bKash নম্বর কপি হয়েছে', 'success');
+    showToast('bKash number copied', 'success');
   } catch (err) {
     // Fallback for older browsers / insecure contexts
     const range = document.createRange();
@@ -186,9 +186,9 @@ async function copyBkashNumber(e) {
     selection.addRange(range);
     try {
       document.execCommand('copy');
-      showToast('bKash নম্বর কপি হয়েছে', 'success');
+      showToast('bKash number copied', 'success');
     } catch (copyErr) {
-      showToast('কপি করা যায়নি — নম্বরটি সিলেক্ট করে কপি করুন।', 'error');
+      showToast('Could not copy — please select and copy the number manually.', 'error');
     }
     selection.removeAllRanges();
     span.remove();
@@ -223,12 +223,12 @@ async function handleBookSubmit(e) {
   const senderBkashNumber = document.getElementById('senderBkashNumber').value.trim();
 
   if (!paymentMethod) {
-    showToast('পেমেন্ট মেথড নির্বাচন করুন।', 'error');
+    showToast('Please select a payment method.', 'error');
     return;
   }
 
   if (paymentMethod === 'bkash' && !senderBkashNumber) {
-    showToast('যে bKash নম্বর থেকে পাঠিয়েছেন সেটি দিন।', 'error');
+    showToast('Please provide the bKash number you sent from.', 'error');
     return;
   }
 
@@ -264,7 +264,7 @@ async function handleBookSubmit(e) {
     showCompetitionPromo(result.missingCompetitions);
   } catch (err) {
     console.error(err);
-    showToast('সার্ভারের সাথে সংযোগে সমস্যা হয়েছে।', 'error');
+    showToast('There was a problem connecting to the server.', 'error');
   } finally {
     btn.disabled = false;
     btn.innerHTML = original;

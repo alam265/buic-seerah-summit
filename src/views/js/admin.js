@@ -20,6 +20,46 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function confirmDialog(message, options = {}) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const messageEl = document.getElementById('confirm-modal-message');
+    const okBtn = document.getElementById('confirm-modal-ok');
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+    if (!modal || !messageEl || !okBtn || !cancelBtn) {
+      resolve(window.confirm(message));
+      return;
+    }
+
+    titleEl.textContent = options.title || 'Confirm';
+    messageEl.textContent = message;
+    okBtn.textContent = options.okText || 'OK';
+    okBtn.className = `btn ${options.danger === false ? 'btn-gold' : 'btn-danger'}`;
+
+    function cleanup(result) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onOverlayClick);
+      document.removeEventListener('keydown', onKeydown);
+      resolve(result);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onOverlayClick(e) { if (e.target === modal) cleanup(false); }
+    function onKeydown(e) { if (e.key === 'Escape') cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onOverlayClick);
+    document.addEventListener('keydown', onKeydown);
+
+    modal.style.display = 'flex';
+  });
+}
+
 function shouldRetryFetch(response, result) {
   return response.status === 503 || result?.code === 'DB_NOT_READY' || result?.retryable === true;
 }
@@ -351,20 +391,20 @@ async function handleEditSubmit(e) {
     });
     const result = await res.json();
     if (result.success) {
-      showToast('তথ্য সফলভাবে আপডেট করা হয়েছে!', 'success');
+      showToast('Data updated successfully!', 'success');
       closeEditModal();
       fetchParticipants();
     } else {
-      showToast(result.message || 'আপডেট করা সম্ভব হয়নি', 'error');
+      showToast(result.message || 'Update failed', 'error');
     }
   } catch (err) {
     console.error(err);
-    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+    showToast('Server connection error', 'error');
   }
 }
 
 async function deleteParticipantItem(id, name) {
-  if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${name}"-এর ডাটা মুছে ফেলতে চান?`)) {
+  if (!(await confirmDialog(`Are you sure you want to delete "${name}"'s data?`))) {
     return;
   }
 
@@ -374,14 +414,14 @@ async function deleteParticipantItem(id, name) {
     });
     const result = await res.json();
     if (result.success) {
-      showToast('ডাটা সফলভাবে ডিলিট করা হয়েছে!', 'success');
+      showToast('Data deleted successfully!', 'success');
       fetchParticipants();
     } else {
-      showToast(result.message || 'ডিলিট করা সম্ভব হয়নি', 'error');
+      showToast(result.message || 'Delete failed', 'error');
     }
   } catch (err) {
     console.error(err);
-    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+    showToast('Server connection error', 'error');
   }
 }
 
@@ -423,7 +463,7 @@ function filterParticipants() {
 
 function exportToCSV() {
   if (participantsData.length === 0) {
-    showToast('ডাউনলোড করার মতো কোনো ডাটা নেই!', 'error');
+    showToast('No data available to download!', 'error');
     return;
   }
 
@@ -463,7 +503,7 @@ function exportToCSV() {
   link.click();
   document.body.removeChild(link);
 
-  showToast('CSV ফাইল ডাউনলোড সম্পন্ন হয়েছে!', 'success');
+  showToast('CSV file downloaded successfully!', 'success');
 }
 
 let emailConfigured = false;
@@ -474,14 +514,14 @@ const NOTIFY_COPY = {
     title: '📧 সব অংশগ্রহণকারীকে ইমেইল পাঠান',
     subjectPlaceholder: 'BUIC Seerah Competition — Important Update',
     hint: 'Placeholders: {{fullName}}, {{ticketId}}, {{studentId}}, {{department}}, {{semester}}',
-    emptyMessage: 'কোনো অংশগ্রহণকারী নেই — ইমেইল পাঠানো যাবে না!',
+    emptyMessage: 'No participants — cannot send email!',
     endpoint: '/api/notifications/email/send'
   },
   book: {
     title: '📧 বই ক্রেতাদের ইমেইল পাঠান',
     subjectPlaceholder: 'Uswatun Hasanah — Book Collection Update',
     hint: 'Placeholders: {{fullName}}, {{studentId}}, {{amountTk}}, {{paymentMethod}}, {{gsuitEmail}}',
-    emptyMessage: 'কোনো বই রেজিস্ট্রেশন নেই — ইমেইল পাঠানো যাবে না!',
+    emptyMessage: 'No book registrations — cannot send email!',
     endpoint: '/api/notifications/email/send-book'
   }
 };
@@ -513,7 +553,7 @@ async function checkEmailStatus() {
 
 function openNotifyModal(audience) {
   if (!emailConfigured) {
-    showToast('SMTP সেটআপ নেই। লোকালে .env-এ বা Vercel Dashboard → Settings → Environment Variables-এ SMTP_HOST, SMTP_USER, SMTP_PASS যোগ করুন।', 'error');
+    showToast('SMTP is not set up. Add SMTP_HOST, SMTP_USER, SMTP_PASS in your local .env or in Vercel Dashboard → Settings → Environment Variables.', 'error');
     return;
   }
 
@@ -565,11 +605,11 @@ async function handleNotifySubmit(e) {
       closeNotifyModal();
       document.getElementById('notify-form').reset();
     } else {
-      showToast(result.message || 'ইমেইল পাঠানো ব্যর্থ হয়েছে।', 'error');
+      showToast(result.message || 'Failed to send email.', 'error');
     }
   } catch (err) {
     console.error('Email notification error:', err);
-    showToast('ইমেইল পাঠাতে সমস্যা হয়েছে।', 'error');
+    showToast('There was a problem sending the email.', 'error');
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalText;
@@ -707,7 +747,7 @@ async function updateBookHandoverStatus(id, handoverStatus, selectEl) {
         selectEl.classList.remove('is-pending', 'is-received');
         selectEl.classList.add(`is-${previous}`);
       }
-      showToast(result.message || 'স্ট্যাটাস আপডেট ব্যর্থ', 'error');
+      showToast(result.message || 'Status update failed', 'error');
       return;
     }
 
@@ -730,7 +770,7 @@ async function updateBookHandoverStatus(id, handoverStatus, selectEl) {
       selectEl.classList.remove('is-pending', 'is-received');
       selectEl.classList.add(`is-${previous}`);
     }
-    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+    showToast('Server connection error', 'error');
   } finally {
     if (selectEl) selectEl.disabled = false;
   }
@@ -758,7 +798,7 @@ function filterBookOrders() {
 }
 
 async function deleteBookOrderItem(id, name) {
-  if (!confirm(`আপনি কি নিশ্চিত যে আপনি "${name}"-এর বই রেজিস্ট্রেশন মুছে ফেলতে চান?`)) {
+  if (!(await confirmDialog(`Are you sure you want to delete "${name}"'s book registration?`))) {
     return;
   }
 
@@ -766,14 +806,14 @@ async function deleteBookOrderItem(id, name) {
     const res = await fetch(`/api/book-orders/${id}`, { method: 'DELETE' });
     const result = await res.json();
     if (result.success) {
-      showToast('বই রেজিস্ট্রেশন ডিলিট করা হয়েছে!', 'success');
+      showToast('Book registration deleted!', 'success');
       fetchBookOrders();
     } else {
-      showToast(result.message || 'ডিলিট করা সম্ভব হয়নি', 'error');
+      showToast(result.message || 'Delete failed', 'error');
     }
   } catch (err) {
     console.error(err);
-    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+    showToast('Server connection error', 'error');
   }
 }
 
@@ -781,9 +821,10 @@ async function syncPurchaseIntents() {
   const btn = document.getElementById('sync-book-btn');
   const original = btn ? btn.innerHTML : '';
 
-  if (!confirm(
-    'Sync purchase intents?\n\nThis will add quiz registrants who chose “purchase & participate” but are not yet in Book Orders.\n\nNew rows: Cash · 150 Tk · Participant'
-  )) {
+  if (!(await confirmDialog(
+    'Sync purchase intents?\n\nThis will add quiz registrants who chose “purchase & participate” but are not yet in Book Orders.\n\nNew rows: Cash · 150 Tk · Participant',
+    { title: 'Sync Purchases', okText: 'Sync', danger: false }
+  ))) {
     return;
   }
 
@@ -808,7 +849,7 @@ async function syncPurchaseIntents() {
     }
   } catch (err) {
     console.error(err);
-    showToast('সার্ভার কানেকশন ত্রুটি', 'error');
+    showToast('Server connection error', 'error');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -819,7 +860,7 @@ async function syncPurchaseIntents() {
 
 function exportBookOrdersToCSV() {
   if (bookOrdersData.length === 0) {
-    showToast('ডাউনলোড করার মতো কোনো বই রেজিস্ট্রেশন নেই!', 'error');
+    showToast('No book registrations available to download!', 'error');
     return;
   }
 
@@ -854,6 +895,6 @@ function exportBookOrdersToCSV() {
   link.click();
   document.body.removeChild(link);
 
-  showToast('Book CSV ফাইল ডাউনলোড সম্পন্ন হয়েছে!', 'success');
+  showToast('Book CSV file downloaded successfully!', 'success');
 }
 

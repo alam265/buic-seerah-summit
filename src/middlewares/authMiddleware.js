@@ -13,7 +13,7 @@ function requireAdminAuth(req, res, next) {
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: 'অনুমতি নেই! প্রথমে অ্যাডমিন হিসেবে লগইন করুন।'
+      message: 'Not authorized! Please log in as admin first.'
     });
   }
 
@@ -21,7 +21,7 @@ function requireAdminAuth(req, res, next) {
   if (!decoded) {
     return res.status(401).json({
       success: false,
-      message: 'আপনার সেশন ম্যাথ উত্তীর্ণ হয়েছে, অনুগ্রহ করে পুনরায় লগইন করুন।'
+      message: 'Your session has expired, please log in again.'
     });
   }
 

@@ -35,7 +35,67 @@ document.addEventListener('DOMContentLoaded', () => {
   prefillFromQuery();
 
   initScrollableSelect(document.getElementById('department'));
+  initBookPurchaseLock();
 });
+
+let bookStatusDebounceTimer = null;
+let bookStatusRequestId = 0;
+
+function initBookPurchaseLock() {
+  const studentIdInput = document.getElementById('studentId');
+  if (!studentIdInput) return;
+
+  studentIdInput.addEventListener('input', () => {
+    clearTimeout(bookStatusDebounceTimer);
+    bookStatusDebounceTimer = setTimeout(checkBookRegistrationStatus, 500);
+  });
+  studentIdInput.addEventListener('blur', checkBookRegistrationStatus);
+
+  if (studentIdInput.value.trim()) {
+    checkBookRegistrationStatus();
+  }
+}
+
+async function checkBookRegistrationStatus() {
+  const studentIdInput = document.getElementById('studentId');
+  const studentId = studentIdInput ? studentIdInput.value.trim() : '';
+
+  if (!studentId) {
+    setPurchaseOptionLocked(false);
+    return;
+  }
+
+  const requestId = ++bookStatusRequestId;
+
+  try {
+    const response = await fetch(`/api/book-register/status?studentId=${encodeURIComponent(studentId)}`);
+    const result = await response.json();
+
+    if (requestId !== bookStatusRequestId) return;
+
+    setPurchaseOptionLocked(Boolean(result.success && result.alreadyRegistered));
+  } catch (err) {
+    console.error('Book status check error:', err);
+  }
+}
+
+function setPurchaseOptionLocked(locked) {
+  const purchaseOption = document.getElementById('uswatun-purchase-option');
+  const purchaseInput = document.getElementById('uswatun-purchase-input');
+  const lockedNote = document.getElementById('uswatun-purchase-locked-note');
+  const haveItInput = document.querySelector('input[name="uswatunHasanahParticipation"][value="I have this already and want to participate without purchasing it"]');
+
+  if (!purchaseOption || !purchaseInput) return;
+
+  purchaseInput.disabled = locked;
+  purchaseOption.classList.toggle('is-disabled', locked);
+  if (lockedNote) lockedNote.hidden = !locked;
+
+  if (locked && purchaseInput.checked) {
+    purchaseInput.checked = false;
+    if (haveItInput) haveItInput.checked = true;
+  }
+}
 
 function prefillFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -129,7 +189,6 @@ async function handleRegistrationSubmit(e) {
 
   const form = e.currentTarget;
   const competition = form.dataset.competition || 'quiz';
-  const isQuiz = competition === 'quiz';
   const submitBtn = document.getElementById('submit-btn');
   const originalBtnText = submitBtn.innerHTML;
 
@@ -152,12 +211,12 @@ async function handleRegistrationSubmit(e) {
   };
 
   if (!payload.fullName || !payload.studentId || !payload.department || !payload.whatsapp || !payload.facebookLink || !payload.gsuitEmail || !payload.personalEmail || !payload.gender) {
-    showToast('অনুগ্রহ করে সকল প্রয়োজনীয় ঘর সঠিকভাবে পূরণ করুন।', 'error');
+    showToast('Please fill in all required fields correctly.', 'error');
     return;
   }
 
   if (!payload.uswatunHasanahRead || !payload.uswatunHasanahParticipation) {
-    showToast('অনুগ্রহ করে Uswatun Hasanah সম্পর্কিত সকল প্রয়োজনীয় প্রশ্নের উত্তর দিন।', 'error');
+    showToast('Please answer all the required Uswatun Hasanah questions.', 'error');
     return;
   }
 
@@ -178,9 +237,8 @@ async function handleRegistrationSubmit(e) {
     if (result.success) {
       showToast(result.message, 'success');
       const wantsToPurchase =
-        isQuiz &&
         uswatunHasanahParticipation ===
-          'Yes, I want to purchase Uswatun Hasanah, and participate';
+        'Yes, I want to purchase Uswatun Hasanah, and participate';
 
       if (wantsToPurchase) {
         const params = new URLSearchParams({
@@ -216,12 +274,12 @@ async function handleRegistrationSubmit(e) {
       showTicketModal(result.registration, result.storageType);
       checkBackendHealth();
     } else {
-      showToast(result.message || 'সমস্যা হয়েছে, পুনরায় চেষ্টা করুন।', 'error');
+      showToast(result.message || 'Something went wrong, please try again.', 'error');
     }
 
   } catch (err) {
     console.error('Registration Error:', err);
-    showToast('সার্ভারের সাথে ডাটা আদানপ্রদানে সমস্যা হয়েছে।', 'error');
+    showToast('There was a problem communicating with the server.', 'error');
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerHTML = originalBtnText;

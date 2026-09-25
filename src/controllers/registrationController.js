@@ -22,11 +22,11 @@ function validateUswatunFields(body) {
   } = body;
 
   if (!uswatunHasanahRead || !['Yes', 'No'].includes(uswatunHasanahRead)) {
-    return 'অনুগ্রহ করে Uswatun Hasanah পড়েছেন কিনা (Yes/No) নির্বাচন করুন।';
+    return 'Please select whether you have read Uswatun Hasanah (Yes/No).';
   }
 
   if (!uswatunHasanahParticipation || !USWATUN_PARTICIPATION_OPTIONS.includes(uswatunHasanahParticipation)) {
-    return 'অনুগ্রহ করে Uswatun Hasanah-এর সাথে প্রতিযোগিতায় অংশগ্রহণের পছন্দ নির্বাচন করুন।';
+    return 'Please select your Uswatun Hasanah participation choice.';
   }
 
   return null;
@@ -54,14 +54,14 @@ async function handleRegister(req, res) {
     if (!COMPETITION_TYPES.includes(cleanCompetition)) {
       return res.status(400).json({
         success: false,
-        message: 'অবৈধ প্রতিযোগিতার ধরন নির্বাচন করা হয়েছে।'
+        message: 'An invalid competition type was selected.'
       });
     }
 
     if (!fullName || !studentId || !department || !whatsapp || !facebookLink || !gsuitEmail || !personalEmail || !gender) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে পূর্ণ নাম, স্টুডেন্ট আইডি, ডিপার্টমেন্ট, হোয়াটসঅ্যাপ, ফেসবুক আইডি, জিসুইট ও পার্সোনাল ইমেইল এবং লিঙ্গ সঠিকভাবে পূরণ করুন।'
+        message: 'Please fill in your full name, student ID, department, WhatsApp number, Facebook ID, GSuite and personal email, and gender correctly.'
       });
     }
 
@@ -101,8 +101,8 @@ async function handleRegister(req, res) {
     return res.status(201).json({
       success: true,
       message: isNeon
-        ? 'অভিনন্দন! আপনার রেজিস্ট্রেশান সফলভাবে সম্পন্ন হয়েছে।'
-        : 'রেজিস্ট্রেশান সফল হয়েছে।',
+        ? 'Congratulations! Your registration was completed successfully.'
+        : 'Registration successful.',
       registration,
       storageType,
       otherCompetition,
@@ -113,12 +113,12 @@ async function handleRegister(req, res) {
     if (err.code === 'DUPLICATE_REGISTRATION') {
       return res.status(409).json({
         success: false,
-        message: 'এই স্টুডেন্ট আইডি দিয়ে ইতিমধ্যে এই প্রতিযোগিতায় রেজিস্ট্রেশন করা হয়েছে।'
+        message: 'A registration for this competition already exists with this student ID.'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'রেজিস্ট্রেশান প্রক্রিয়াজাতকণে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem processing the registration: ' + err.message
     });
   }
 }
@@ -140,12 +140,12 @@ async function handleGetParticipants(req, res) {
         success: false,
         code: 'DB_NOT_READY',
         retryable: true,
-        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+        message: 'The database is not ready yet. Please try again in a moment.'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'ডাটা সংগ্রহ করতে ব্যর্থ হয়েছে: ' + err.message
+      message: 'Failed to fetch data: ' + err.message
     });
   }
 }
@@ -173,7 +173,7 @@ async function handleUpdateParticipant(req, res) {
     if (!COMPETITION_TYPES.includes(cleanCompetition)) {
       return res.status(400).json({
         success: false,
-        message: 'অবৈধ প্রতিযোগিতার ধরন নির্বাচন করা হয়েছে।'
+        message: 'An invalid competition type was selected.'
       });
     }
 
@@ -193,13 +193,13 @@ async function handleUpdateParticipant(req, res) {
       uswatunHasanahParticipation
     });
     if (!updated) {
-      return res.status(404).json({ success: false, message: 'অংশগ্রহণকারী খুঁজে পাওয়া যায়নি।' });
+      return res.status(404).json({ success: false, message: 'Participant not found.' });
     }
 
-    res.json({ success: true, message: 'তথ্য সফলভাবে আপডেট করা হয়েছে।', participant: updated });
+    res.json({ success: true, message: 'Data updated successfully.', participant: updated });
   } catch (err) {
     console.error('Update Controller Error:', err);
-    res.status(500).json({ success: false, message: 'আপডেট করতে ব্যর্থ হয়েছে: ' + err.message });
+    res.status(500).json({ success: false, message: 'Update failed: ' + err.message });
   }
 }
 
@@ -208,13 +208,13 @@ async function handleDeleteParticipant(req, res) {
     const { id } = req.params;
     const deleted = await deleteParticipant(id);
     if (!deleted) {
-      return res.status(404).json({ success: false, message: 'অংশগ্রহণকারী খুঁজে পাওয়া যায়নি।' });
+      return res.status(404).json({ success: false, message: 'Participant not found.' });
     }
 
-    res.json({ success: true, message: 'ডাটা সফলভাবে ডিলিট করা হয়েছে।' });
+    res.json({ success: true, message: 'Data deleted successfully.' });
   } catch (err) {
     console.error('Delete Controller Error:', err);
-    res.status(500).json({ success: false, message: 'ডিলিট করতে ব্যর্থ হয়েছে: ' + err.message });
+    res.status(500).json({ success: false, message: 'Delete failed: ' + err.message });
   }
 }
 

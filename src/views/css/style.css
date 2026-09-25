@@ -1148,6 +1148,17 @@ body {
   box-shadow: 0 12px 30px rgba(217, 70, 239, 0.55);
 }
 
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+}
+
+.btn-danger:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.55);
+}
+
 .countdown-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1606,6 +1617,12 @@ body {
   border-radius: var(--radius-sm);
 }
 
+.form-note--locked {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
 .bkash-copy-btn {
   display: inline-flex;
   align-items: center;
@@ -1679,6 +1696,16 @@ body {
 .radio-option:has(input:checked) {
   border-color: var(--accent-gold);
   background: rgba(168, 85, 247, 0.1);
+}
+
+.radio-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.radio-option.is-disabled:hover {
+  border-color: var(--border-color);
 }
 
 .form-textarea {

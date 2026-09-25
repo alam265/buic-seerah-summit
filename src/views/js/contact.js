@@ -28,7 +28,7 @@ function initContactForm() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    showToast('আপনার বার্তাটি পাওয়া গেছে। খুব শীঘ্রই আমাদের প্রতিনিধি যোগাযোগ করবেন।', 'success');
+    showToast('Your message has been received. Our representative will contact you shortly.', 'success');
     form.reset();
   });
 }

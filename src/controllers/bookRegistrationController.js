@@ -36,7 +36,7 @@ async function handleBookStatus(req, res) {
     if (!studentId) {
       return res.status(400).json({
         success: false,
-        message: 'স্টুডেন্ট আইডি প্রয়োজন।'
+        message: 'Student ID is required.'
       });
     }
 
@@ -49,7 +49,7 @@ async function handleBookStatus(req, res) {
     console.error('Book status error:', err);
     res.status(500).json({
       success: false,
-      message: 'স্ট্যাটাস দেখতে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem checking the status: ' + err.message
     });
   }
 }
@@ -61,7 +61,7 @@ async function handleBookLookup(req, res) {
     if (!studentId || !fullName || !gsuitEmail || !personalEmail || !whatsapp) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে স্টুডেন্ট আইডি, নাম, জিসুইট ইমেইল, পার্সোনাল ইমেইল এবং হোয়াটসঅ্যাপ পূরণ করুন।'
+        message: 'Please fill in your student ID, name, GSuite email, personal email, and WhatsApp number.'
       });
     }
 
@@ -69,7 +69,7 @@ async function handleBookLookup(req, res) {
     if (existing) {
       return res.status(409).json({
         success: false,
-        message: 'এই স্টুডেন্ট আইডি দিয়ে ইতিমধ্যে বই রেজিস্ট্রেশন সম্পন্ন হয়েছে।'
+        message: 'A book registration already exists for this student ID.'
       });
     }
 
@@ -90,7 +90,7 @@ async function handleBookLookup(req, res) {
     console.error('Book lookup error:', err);
     res.status(500).json({
       success: false,
-      message: 'লুকআপ করতে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem with the lookup: ' + err.message
     });
   }
 }
@@ -110,7 +110,7 @@ async function handleBookRegister(req, res) {
     if (!studentId || !fullName || !gsuitEmail || !personalEmail || !whatsapp || !paymentMethod) {
       return res.status(400).json({
         success: false,
-        message: 'অনুগ্রহ করে সকল প্রয়োজনীয় ঘর সঠিকভাবে পূরণ করুন।'
+        message: 'Please fill in all required fields correctly.'
       });
     }
 
@@ -118,14 +118,14 @@ async function handleBookRegister(req, res) {
     if (!PAYMENT_METHODS.includes(method)) {
       return res.status(400).json({
         success: false,
-        message: 'পেমেন্ট মেথড Cash অথবা bKash নির্বাচন করুন।'
+        message: 'Please select a payment method: Cash or bKash.'
       });
     }
 
     if (method === 'bkash' && !String(senderBkashNumber || '').trim()) {
       return res.status(400).json({
         success: false,
-        message: 'bKash দিয়ে পেমেন্ট করলে যে নম্বর থেকে পাঠিয়েছেন সেটি দিতে হবে।'
+        message: 'If paying via bKash, you must provide the number you sent from.'
       });
     }
 
@@ -145,7 +145,7 @@ async function handleBookRegister(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: 'বই রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!',
+      message: 'Book registration completed successfully!',
       registration,
       storageType,
       missingCompetitions
@@ -154,21 +154,21 @@ async function handleBookRegister(req, res) {
     if (err.code === 'DUPLICATE_BOOK_REGISTRATION' || err.message === 'DUPLICATE_BOOK_REGISTRATION') {
       return res.status(409).json({
         success: false,
-        message: 'এই স্টুডেন্ট আইডি দিয়ে ইতিমধ্যে বই রেজিস্ট্রেশন সম্পন্ন হয়েছে।'
+        message: 'A book registration already exists for this student ID.'
       });
     }
 
     if (err.code === '23505') {
       return res.status(409).json({
         success: false,
-        message: 'এই স্টুডেন্ট আইডি দিয়ে ইতিমধ্যে বই রেজিস্ট্রেশন সম্পন্ন হয়েছে।'
+        message: 'A book registration already exists for this student ID.'
       });
     }
 
     console.error('Book register error:', err);
     res.status(500).json({
       success: false,
-      message: 'বই রেজিস্ট্রেশন প্রক্রিয়াজাতকণে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem processing the book registration: ' + err.message
     });
   }
 }
@@ -189,12 +189,12 @@ async function handleGetBookOrders(req, res) {
         success: false,
         code: 'DB_NOT_READY',
         retryable: true,
-        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+        message: 'The database is not ready yet. Please try again in a moment.'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'বই রেজিস্ট্রেশন তালিকা সংগ্রহ করতে ব্যর্থ: ' + err.message
+      message: 'Failed to fetch the book registration list: ' + err.message
     });
   }
 }
@@ -214,7 +214,7 @@ async function handleUpdateBookHandoverStatus(req, res) {
 
     const order = await updateBookHandoverStatus(id, status);
     if (!order) {
-      return res.status(404).json({ success: false, message: 'বই রেজিস্ট্রেশন খুঁজে পাওয়া যায়নি।' });
+      return res.status(404).json({ success: false, message: 'Book registration not found.' });
     }
 
     res.json({
@@ -230,7 +230,7 @@ async function handleUpdateBookHandoverStatus(req, res) {
       });
     }
     console.error('Book handover status update error:', err);
-    res.status(500).json({ success: false, message: 'স্ট্যাটাস আপডেট ব্যর্থ: ' + err.message });
+    res.status(500).json({ success: false, message: 'Status update failed: ' + err.message });
   }
 }
 
@@ -239,12 +239,12 @@ async function handleDeleteBookOrder(req, res) {
     const { id } = req.params;
     const deleted = await deleteBookRegistration(id);
     if (!deleted) {
-      return res.status(404).json({ success: false, message: 'বই রেজিস্ট্রেশন খুঁজে পাওয়া যায়নি।' });
+      return res.status(404).json({ success: false, message: 'Book registration not found.' });
     }
-    res.json({ success: true, message: 'বই রেজিস্ট্রেশন সফলভাবে ডিলিট করা হয়েছে।' });
+    res.json({ success: true, message: 'Book registration deleted successfully.' });
   } catch (err) {
     console.error('Book order delete error:', err);
-    res.status(500).json({ success: false, message: 'ডিলিট করতে ব্যর্থ: ' + err.message });
+    res.status(500).json({ success: false, message: 'Delete failed: ' + err.message });
   }
 }
 
@@ -269,12 +269,12 @@ async function handleSyncPurchaseToBook(req, res) {
         success: false,
         code: 'DB_NOT_READY',
         retryable: true,
-        message: 'ডাটাবেজ এখনও প্রস্তুত নয়। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+        message: 'The database is not ready yet. Please try again in a moment.'
       });
     }
     res.status(500).json({
       success: false,
-      message: 'Sync ব্যর্থ: ' + err.message
+      message: 'Sync failed: ' + err.message
     });
   }
 }

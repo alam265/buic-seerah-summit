@@ -40,13 +40,13 @@ async function handleSendNotification(req, res) {
     if (!subject || !String(subject).trim()) {
       return res.status(400).json({
         success: false,
-        message: 'ইমেইলের বিষয় (subject) দিতে হবে।'
+        message: 'An email subject is required.'
       });
     }
     if (!message || !String(message).trim()) {
       return res.status(400).json({
         success: false,
-        message: 'ইমেইলের বার্তা (message) দিতে হবে।'
+        message: 'An email message is required.'
       });
     }
 
@@ -54,7 +54,7 @@ async function handleSendNotification(req, res) {
     if (data.participants.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'কোনো নিবন্ধিত অংশগ্রহণকারী নেই।'
+        message: 'There are no registered participants.'
       });
     }
 
@@ -66,7 +66,7 @@ async function handleSendNotification(req, res) {
 
     res.json({
       success: true,
-      message: `${result.sent.length} জনকে ইমেইল পাঠানো হয়েছে।`,
+      message: `Email sent to ${result.sent.length} recipient(s).`,
       sentCount: result.sent.length,
       failedCount: result.failed.length,
       skippedCount: result.skipped.length,
@@ -78,7 +78,7 @@ async function handleSendNotification(req, res) {
     console.error('Bulk Email Notification Error:', err);
     res.status(500).json({
       success: false,
-      message: 'ইমেইল পাঠাতে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem sending the email: ' + err.message
     });
   }
 }
@@ -97,13 +97,13 @@ async function handleSendBookNotification(req, res) {
     if (!subject || !String(subject).trim()) {
       return res.status(400).json({
         success: false,
-        message: 'ইমেইলের বিষয় (subject) দিতে হবে।'
+        message: 'An email subject is required.'
       });
     }
     if (!message || !String(message).trim()) {
       return res.status(400).json({
         success: false,
-        message: 'ইমেইলের বার্তা (message) দিতে হবে।'
+        message: 'An email message is required.'
       });
     }
 
@@ -111,7 +111,7 @@ async function handleSendBookNotification(req, res) {
     if (data.orders.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'কোনো বই রেজিস্ট্রেশন নেই।'
+        message: 'There are no book registrations.'
       });
     }
 
@@ -123,7 +123,7 @@ async function handleSendBookNotification(req, res) {
 
     res.json({
       success: true,
-      message: `${result.sent.length} জন বই ক্রেতাকে ইমেইল পাঠানো হয়েছে।`,
+      message: `Email sent to ${result.sent.length} book buyer(s).`,
       sentCount: result.sent.length,
       failedCount: result.failed.length,
       skippedCount: result.skipped.length,
@@ -135,7 +135,7 @@ async function handleSendBookNotification(req, res) {
     console.error('Book Email Notification Error:', err);
     res.status(500).json({
       success: false,
-      message: 'ইমেইল পাঠাতে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem sending the email: ' + err.message
     });
   }
 }

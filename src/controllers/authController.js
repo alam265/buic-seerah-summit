@@ -7,7 +7,7 @@ async function handleAdminLogin(req, res) {
     if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: 'ইউজারনেম এবং পাসওয়ার্ড উভয়ই প্রদান করা আবশ্যক।'
+        message: 'Both username and password are required.'
       });
     }
 
@@ -15,7 +15,7 @@ async function handleAdminLogin(req, res) {
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: 'ভুল ইউজারনেম অথবা পাসওয়ার্ড! আবার চেষ্টা করুন।'
+        message: 'Incorrect username or password! Please try again.'
       });
     }
 
@@ -32,7 +32,7 @@ async function handleAdminLogin(req, res) {
 
     return res.json({
       success: true,
-      message: 'লগইন সফল হয়েছে! অ্যাডমিন প্যানেলে রিডাইরেক্ট করা হচ্ছে...',
+      message: 'Login successful! Redirecting to the admin panel...',
       token,
       redirectUrl: '/admin',
       admin: { username: admin.username }
@@ -42,7 +42,7 @@ async function handleAdminLogin(req, res) {
     console.error('Login controller error:', err);
     res.status(500).json({
       success: false,
-      message: 'লগইন করতে সমস্যা হয়েছে: ' + err.message
+      message: 'There was a problem logging in: ' + err.message
     });
   }
 }
