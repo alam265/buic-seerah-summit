@@ -108,8 +108,8 @@ async function seedDefaultAdmin(client) {
     const res = await client.query('SELECT COUNT(*) FROM admins');
     const count = parseInt(res.rows[0].count, 10);
     if (count === 0) {
-      const defaultUser = process.env.ADMIN_USERNAME || 'admin';
-      const defaultPass = process.env.ADMIN_PASSWORD || 'admin123';
+      const defaultUser = process.env.ADMIN_USERNAME;
+      const defaultPass = process.env.ADMIN_PASSWORD;
       const hashedPassword = await bcrypt.hash(defaultPass, 10);
       await client.query('INSERT INTO admins (username, password) VALUES ($1, $2)', [defaultUser, hashedPassword]);
       console.log(`🔐 Default admin created -> Username: ${defaultUser}, Password: ${defaultPass}`);
